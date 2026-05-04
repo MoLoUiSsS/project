@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking System — Project Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.7;
+            color: #1e293b;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 40px;
+            background: #fff;
+        }
+
+        /* ── Cover ────────────────────────────── */
+        .cover {
+            text-align: center;
+            padding: 50px 30px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0ea5e9 100%);
+            border-radius: 16px;
+            color: white;
+            page-break-after: always;
+        }
+        .cover h1 {
+            font-size: 32pt;
+            font-weight: 700;
+            border: none;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .cover .subtitle {
+            font-size: 14pt;
+            opacity: 0.85;
+            margin-bottom: 5px;
+        }
+        .cover .meta {
+            font-size: 11pt;
+            opacity: 0.65;
+            margin-top: 20px;
+        }
+
+        /* ── Headings ─────────────────────────── */
+        h1 {
+            color: #0f172a;
+            font-size: 22pt;
+            font-weight: 700;
+            border-bottom: 3px solid #0ea5e9;
+            padding-bottom: 8px;
+            margin: 35px 0 15px 0;
+        }
+        h2 {
+            color: #1e3a5f;
+            font-size: 15pt;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin: 30px 0 12px 0;
+        }
+        h3 {
+            color: #334155;
+            font-size: 12pt;
+            font-weight: 600;
+            margin: 20px 0 8px 0;
+        }
+
+        /* ── Tables ───────────────────────────── */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+            font-size: 9.5pt;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        th {
+            background: linear-gradient(135deg, #0f172a, #1e3a5f);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        tr:hover {
+            background-color: #eff6ff;
+        }
+
+        /* ── Code ─────────────────────────────── */
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            font-size: 9.5pt;
+            color: #0f172a;
+        }
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 18px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 9pt;
+            line-height: 1.5;
+            margin: 15px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        /* ── Mermaid diagrams ─────────────────── */
+        .mermaid {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* ── Misc ─────────────────────────────── */
+        hr {
+            border: none;
+            border-top: 2px solid #e2e8f0;
+            margin: 30px 0;
+        }
+        p {
+            margin: 8px 0;
+        }
+        ul, ol {
+            margin: 8px 0 8px 25px;
+        }
+        li {
+            margin: 4px 0;
+        }
+        strong {
+            color: #0f172a;
+        }
+
+        /* ── Print ────────────────────────────── */
+        @media print {
+            body { padding: 0; }
+            .cover { page-break-after: always; }
+            pre { box-shadow: none; border: 1px solid #ccc; }
+            .mermaid { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cover">
+        <h1>🅿️ Smart Parking System</h1>
+        <div class="subtitle">Automated License Plate Recognition & Gate Control</div>
+        <div class="subtitle">Project Report</div>
+        <div class="meta">ISI — Institut Supérieur d'Informatique</div>
+        <div class="meta">Arduino · Flask · OCR · SocketIO · SQLite</div>
+    </div>
+
+    <h1>Smart Parking System — Project Report</h1>
+<h2>1. Project Overview</h2>
+<h3>1.1 Context</h3>
+<p>This project was developed as part of the <strong>ISI (Institut Supérieur d'Informatique)</strong> curriculum. It implements an <strong>intelligent parking access control system</strong> that combines embedded hardware (Arduino) with a web-based administration platform.</p>
+<h3>1.2 Objective</h3>
+<p>Build a fully integrated system that:</p>
+<ul><li><strong>Detects</strong> approaching vehicles using an ultrasonic sensor</li><li><strong>Captures</strong> license plate images via a PC webcam</li><li><strong>Reads</strong> the plate number using OCR (Optical Character Recognition)</li><li><strong>Verifies</strong> registration and payment status in a database</li><li><strong>Controls</strong> a physical gate barrier (servo motor) based on verification results</li><li><strong>Provides</strong> a real-time web dashboard for monitoring and administration</li></ul>
+<h3>1.3 Key Features</h3>
+<table>
+<thead><tr><th>Feature</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>Automatic Detection</td><td>HC-SR04 ultrasonic sensor detects cars < 30 cm</td></tr>
+<tr><td>License Plate OCR</td><td>OCR.space API with Algerian plate format parsing</td></tr>
+<tr><td>Access Control</td><td>Gate opens only for registered + paid vehicles</td></tr>
+<tr><td>Real-time Dashboard</td><td>Live distance gauge, gate animation, access logs</td></tr>
+<tr><td>Vehicle Registration</td><td>Web form to register vehicles with owner info</td></tr>
+<tr><td>Payment Management</td><td>Admin panel to mark vehicles as paid/unpaid</td></tr>
+<tr><td>Arduino Integration</td><td>Serial communication for sensor data + gate control</td></tr>
+</tbody></table>
+
+<hr>
+<h2>2. Technologies Used</h2>
+<h3>2.1 Technology Stack</h3>
+<table>
+<thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Backend</strong></td><td>Python</td><td>3.x</td><td>Server-side logic</td></tr>
+<tr><td><strong>Web Framework</strong></td><td>Flask</td><td>3.0.0</td><td>HTTP routing & templates</td></tr>
+<tr><td><strong>Real-time</strong></td><td>Flask-SocketIO</td><td>5.3.6</td><td>WebSocket communication</td></tr>
+<tr><td><strong>Database</strong></td><td>SQLite</td><td>Built-in</td><td>Persistent data storage</td></tr>
+<tr><td><strong>OCR</strong></td><td>OCR.space API</td><td>v2</td><td>License plate text extraction</td></tr>
+<tr><td><strong>Computer Vision</strong></td><td>OpenCV</td><td>4.9.0</td><td>Webcam capture</td></tr>
+<tr><td><strong>Serial Comm.</strong></td><td>PySerial</td><td>3.5</td><td>Arduino ↔ Python communication</td></tr>
+<tr><td><strong>Frontend</strong></td><td>HTML/CSS/JS</td><td>-</td><td>Web interface</td></tr>
+<tr><td><strong>Embedded</strong></td><td>Arduino (C++)</td><td>AVR</td><td>Sensor reading + servo control</td></tr>
+<tr><td><strong>Hardware</strong></td><td>HC-SR04</td><td>-</td><td>Ultrasonic distance sensor</td></tr>
+<tr><td><strong>Hardware</strong></td><td>Servo Motor (SG90)</td><td>-</td><td>Gate barrier actuator</td></tr>
+</tbody></table>
+
+<h3>2.2 Architecture Pattern</h3>
+<ul><li><strong>Backend</strong>: Modular Flask application with Blueprints (MVC-inspired)</li><li><strong>Communication</strong>: REST API + WebSocket (SocketIO) for real-time updates</li><li><strong>Hardware</strong>: Serial protocol over USB (9600 baud)</li></ul>
+<hr>
+<h2>3. System Architecture</h2>
+<h3>3.1 High-Level Architecture</h3>
+<div class="mermaid">
+graph TB
+    subgraph Hardware["🔧 Hardware Layer"]
+        SENSOR["HC-SR04<br/>Ultrasonic Sensor"]
+        ARDUINO["Arduino Uno<br/>ATmega328P"]
+        SERVO["Servo Motor<br/>Gate Barrier"]
+    end
+
+    subgraph Backend["🖥️ Backend Layer (Python)"]
+        FLASK["Flask App<br/>(app.py)"]
+        ARDUINO_SVC["Arduino Service<br/>Serial Communication"]
+        OCR_SVC["OCR Service<br/>Plate Recognition"]
+        CAM_SVC["Camera Service<br/>Webcam Capture"]
+        GATE_SVC["Gate Service<br/>Access Logic"]
+        DB["SQLite Database<br/>lapi_db.sqlite"]
+    end
+
+    subgraph Frontend["🌐 Frontend Layer"]
+        DASH["Dashboard<br/>index.html"]
+        PARK["Parking Gate<br/>parking.html"]
+        REG["Registration<br/>register.html"]
+        ADMIN["Admin Panel<br/>admin.html"]
+    end
+
+    subgraph External["☁️ External"]
+        OCR_API["OCR.space API"]
+        WEBCAM["PC Webcam"]
+    end
+
+    SENSOR -->|distance data| ARDUINO
+    ARDUINO -->|Serial USB| ARDUINO_SVC
+    ARDUINO_SVC -->|GATE:OPEN/CLOSE| ARDUINO
+    ARDUINO -->|PWM signal| SERVO
+
+    ARDUINO_SVC --> GATE_SVC
+    GATE_SVC --> CAM_SVC
+    GATE_SVC --> OCR_SVC
+    GATE_SVC --> DB
+    CAM_SVC --> WEBCAM
+    OCR_SVC --> OCR_API
+
+    FLASK --> ARDUINO_SVC
+    FLASK --> GATE_SVC
+    FLASK -->|REST + SocketIO| Frontend
+    FLASK --> DB
+</div>
+<h3>3.2 Sequence Diagram — Car Detection Flow</h3>
+<div class="mermaid">
+sequenceDiagram
+    participant Car
+    participant Sensor as HC-SR04 Sensor
+    participant Arduino
+    participant Python as Python (app.py)
+    participant Webcam as PC Webcam
+    participant OCR as OCR.space API
+    participant DB as SQLite DB
+    participant UI as Web Dashboard
+
+    Car->>Sensor: Approaches gate
+    Sensor->>Arduino: Echo signal (< 30cm)
+    Arduino->>Python: "DIST:22" (Serial)
+    Python->>UI: distance_update (SocketIO)
+    Note over UI: Gauge turns RED
+
+    Python->>Python: Distance ≤ 30cm detected
+    Python->>UI: gate_triggered (SocketIO)
+    Note over UI: "Analyzing..." spinner
+
+    Python->>Webcam: Capture frame
+    Webcam-->>Python: JPEG image
+
+    Python->>OCR: Send image (Base64)
+    OCR-->>Python: Parsed text
+
+    Python->>Python: Parse Algerian plate format
+    Note over Python: "12345 123 16"
+
+    Python->>DB: Check registered_vehicles
+    alt Registered + Paid
+        DB-->>Python: ✅ Found, is_paid = 1
+        Python->>Arduino: "GATE:OPEN" (Serial)
+        Arduino->>Arduino: Servo → 90°
+        Arduino-->>Python: "GATE_OPENED"
+        Python->>UI: gate_status: open
+        Note over UI: Gate arm opens ✅
+    else Not Registered or Not Paid
+        DB-->>Python: ❌ Not found / unpaid
+        Python->>Arduino: "GATE:CLOSE" (Serial)
+        Python->>UI: gate_result: denied
+        Note over UI: "Access Denied" ❌
+    end
+
+    Python->>DB: INSERT access_logs
+    Python->>UI: gate_result (SocketIO)
+</div>
+<hr>
+<h2>4. Database Schema</h2>
+<h3>4.1 Entity-Relationship Diagram</h3>
+<div class="mermaid">
+erDiagram
+    cameras {
+        int id_camera PK
+        text adresse_ip
+        text localisation
+        text statut
+    }
+
+    captures {
+        int id_capture PK
+        text plaque_immatriculation
+        text date_heure_capture
+        text chemin_image
+        real fiabilite_lecture
+        int id_camera FK
+    }
+
+    registered_vehicles {
+        int id PK
+        text owner_name
+        text plaque_immatriculation UK
+        text phone
+        text date_registered
+        int is_paid
+        text payment_date
+        real payment_amount
+    }
+
+    access_logs {
+        int id PK
+        text plaque_immatriculation
+        text timestamp
+        int access_granted
+        text reason
+        text chemin_image
+        real distance_cm
+    }
+
+    cameras ||--o{ captures : "captures from"
+    registered_vehicles ||--o{ access_logs : "generates"
+</div>
+<h3>4.2 Table Descriptions</h3>
+<table>
+<thead><tr><th>Table</th><th>Purpose</th><th>Key Fields</th></tr></thead>
+<tbody>
+<tr><td><code>cameras</code></td><td>Camera/capture device registry</td><td>IP, location, status</td></tr>
+<tr><td><code>captures</code></td><td>All OCR capture records</td><td>plate, timestamp, image path, reliability</td></tr>
+<tr><td><code>registered_vehicles</code></td><td>Authorized vehicles</td><td>owner, plate (unique), payment status</td></tr>
+<tr><td><code>access_logs</code></td><td>Gate access history</td><td>plate, granted/denied, reason, distance</td></tr>
+</tbody></table>
+
+<hr>
+<h2>5. Arduino–Python Serial Protocol</h2>
+<h3>5.1 Communication Diagram</h3>
+<div class="mermaid">
+graph LR
+    subgraph Arduino["Arduino (C++)"]
+        A1["measureDistance()"]
+        A2["readSerialCommands()"]
+        A3["openGate() / closeGate()"]
+    end
+
+    subgraph Python["Python (arduino_service.py)"]
+        P1["_reader_thread()"]
+        P2["send_command()"]
+        P3["_parse_distance()"]
+    end
+
+    A1 -->|"DIST:24\n"| P1
+    A1 -->|"CAR_DETECTED\n"| P1
+    A3 -->|"GATE_OPENED\n"| P1
+    A3 -->|"GATE_CLOSED\n"| P1
+
+    P2 -->|"GATE:OPEN\n"| A2
+    P2 -->|"GATE:CLOSE\n"| A2
+
+    P1 --> P3
+</div>
+<h3>5.2 Message Reference</h3>
+<table>
+<thead><tr><th>Direction</th><th>Message</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Arduino → PC</td><td><code>DIST:<cm></code></td><td>Current ultrasonic distance (every 300ms)</td></tr>
+<tr><td>Arduino → PC</td><td><code>CAR_DETECTED</code></td><td>Vehicle within detection range (< 30cm)</td></tr>
+<tr><td>Arduino → PC</td><td><code>GATE_OPENED</code></td><td>Servo moved to 90° (gate open)</td></tr>
+<tr><td>Arduino → PC</td><td><code>GATE_CLOSED</code></td><td>Servo moved to 0° (gate closed)</td></tr>
+<tr><td>Arduino → PC</td><td><code>PARKING_SYSTEM_READY</code></td><td>Arduino booted and ready</td></tr>
+<tr><td>PC → Arduino</td><td><code>GATE:OPEN</code></td><td>Command to open gate (after DB verification)</td></tr>
+<tr><td>PC → Arduino</td><td><code>GATE:CLOSE</code></td><td>Command to close gate</td></tr>
+</tbody></table>
+
+<h3>5.3 Settings</h3>
+<ul><li><strong>Baud rate</strong>: 9600</li><li><strong>Line terminator</strong>: <code>\n</code> (newline)</li><li><strong>USB interface</strong>: Virtual COM port (e.g., COM3)</li></ul>
+<hr>
+<h2>6. Hardware Wiring</h2>
+<h3>6.1 Pin Connections</h3>
+<table>
+<thead><tr><th>Component</th><th>Pin</th><th>Arduino Pin</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>HC-SR04 VCC</td><td>VCC</td><td>5V</td><td>Power</td></tr>
+<tr><td>HC-SR04 GND</td><td>GND</td><td>GND</td><td>Ground</td></tr>
+<tr><td>HC-SR04 TRIG</td><td>Trigger</td><td>Pin 9</td><td>Output — sends pulse</td></tr>
+<tr><td>HC-SR04 ECHO</td><td>Echo</td><td>Pin 10</td><td>Input — receives echo</td></tr>
+<tr><td>Servo Signal</td><td>Orange/Yellow</td><td>Pin 6</td><td>PWM control</td></tr>
+<tr><td>Servo VCC</td><td>Red</td><td>5V</td><td>Power</td></tr>
+<tr><td>Servo GND</td><td>Brown/Black</td><td>GND</td><td>Ground</td></tr>
+</tbody></table>
+
+<h3>6.2 Wiring Diagram</h3>
+<pre><code>Arduino Uno
+┌─────────────────────┐
+│                     │
+│  Pin 9  ──────────── TRIG ─┐
+│  Pin 10 ──────────── ECHO ─┤  HC-SR04
+│  5V     ──────────── VCC  ─┤  Ultrasonic
+│  GND    ──────────── GND  ─┘  Sensor
+│                     │
+│  Pin 6  ──────────── Signal ─┐
+│  5V     ──────────── VCC    ─┤  Servo Motor
+│  GND    ──────────── GND    ─┘  (Gate)
+│                     │
+│  USB ═══════════════ PC (COM3, 9600 baud)
+└─────────────────────┘</code></pre>
+<hr>
+<h2>7. REST API Reference</h2>
+<h3>7.1 Page Routes</h3>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>GET</td><td><code>/</code></td><td>Main dashboard</td></tr>
+<tr><td>GET</td><td><code>/parking</code></td><td>Parking gate control page</td></tr>
+<tr><td>GET</td><td><code>/register</code></td><td>Vehicle registration form</td></tr>
+<tr><td>GET</td><td><code>/admin</code></td><td>Admin panel</td></tr>
+</tbody></table>
+
+<h3>7.2 Capture API</h3>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>POST</td><td><code>/upload</code></td><td>Upload image for OCR</td></tr>
+<tr><td>GET</td><td><code>/api/captures</code></td><td>Get last 50 captures</td></tr>
+<tr><td>DELETE</td><td><code>/api/captures/<id></code></td><td>Delete a capture</td></tr>
+</tbody></table>
+
+<h3>7.3 Vehicle API</h3>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>POST</td><td><code>/api/register</code></td><td>Register a new vehicle</td></tr>
+<tr><td>GET</td><td><code>/api/vehicles</code></td><td>List all registered vehicles</td></tr>
+<tr><td>POST</td><td><code>/api/vehicles/<id>/pay</code></td><td>Mark vehicle as paid</td></tr>
+<tr><td>POST</td><td><code>/api/vehicles/<id>/unpay</code></td><td>Mark vehicle as unpaid</td></tr>
+<tr><td>DELETE</td><td><code>/api/vehicles/<id></code></td><td>Delete a vehicle</td></tr>
+</tbody></table>
+
+<h3>7.4 Parking / Gate API</h3>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>POST</td><td><code>/api/gate/capture</code></td><td>Manual capture + OCR + gate control</td></tr>
+<tr><td>POST</td><td><code>/api/check-plate</code></td><td>Check plate status without gate action</td></tr>
+<tr><td>GET</td><td><code>/api/access-logs</code></td><td>Get access history (last 100)</td></tr>
+</tbody></table>
+
+<h3>7.5 Arduino API</h3>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>GET</td><td><code>/api/arduino/status</code></td><td>Connection status + last distance</td></tr>
+<tr><td>POST</td><td><code>/api/arduino/connect</code></td><td>Connect to serial port</td></tr>
+<tr><td>POST</td><td><code>/api/arduino/disconnect</code></td><td>Disconnect</td></tr>
+<tr><td>GET</td><td><code>/api/arduino/ports</code></td><td>List available COM ports</td></tr>
+<tr><td>POST</td><td><code>/api/arduino/command</code></td><td>Send raw command to Arduino</td></tr>
+</tbody></table>
+
+<h3>7.6 SocketIO Events</h3>
+<table>
+<thead><tr><th>Event</th><th>Direction</th><th>Payload</th></tr></thead>
+<tbody>
+<tr><td><code>distance_update</code></td><td>Server → Client</td><td><code>{distance: float}</code></td></tr>
+<tr><td><code>gate_triggered</code></td><td>Server → Client</td><td><code>{message: string}</code></td></tr>
+<tr><td><code>gate_status</code></td><td>Server → Client</td><td><code>{status: "open"/"closed"}</code></td></tr>
+<tr><td><code>gate_result</code></td><td>Server → Client</td><td><code>{access, plate, reason, ...}</code></td></tr>
+<tr><td><code>new_capture</code></td><td>Server → Client</td><td><code>{plaque, fiabilite, timestamp, image}</code></td></tr>
+<tr><td><code>arduino_status</code></td><td>Server → Client</td><td><code>{connected, port, message}</code></td></tr>
+<tr><td><code>vehicle_registered</code></td><td>Server → Client</td><td><code>{id, owner, plate, ...}</code></td></tr>
+<tr><td><code>vehicle_updated</code></td><td>Server → Client</td><td><code>{id, is_paid}</code></td></tr>
+<tr><td><code>vehicle_deleted</code></td><td>Server → Client</td><td><code>{id}</code></td></tr>
+</tbody></table>
+
+<hr>
+<h2>8. Project Structure</h2>
+<pre><code>lapi_app/
+│
+├── app.py                          # Entry point — Flask init, blueprints, startup
+├── config.py                       # Constants and settings
+├── database.py                     # SQLite connection + schema initialization
+├── init_db.py                      # Backward-compatible DB init script
+├── requirements.txt                # Python dependencies
+├── lapi_db.sqlite                  # SQLite database file
+├── test_arduino.py                 # Standalone Arduino diagnostic tool
+│
+├── services/                       # Backend business logic
+│   ├── __init__.py
+│   ├── arduino_service.py          # Serial communication with Arduino
+│   ├── ocr_service.py              # OCR API + plate format parsing
+│   ├── camera_service.py           # Webcam capture via OpenCV
+│   └── gate_service.py             # Detection pipeline orchestrator
+│
+├── routes/                         # Flask route blueprints
+│   ├── __init__.py
+│   ├── pages.py                    # HTML page routes
+│   ├── capture_routes.py           # Image upload + capture API
+│   ├── vehicle_routes.py           # Vehicle registration + payment API
+│   ├── parking_routes.py           # Gate control + access logs API
+│   └── arduino_routes.py           # Arduino serial control API
+│
+├── templates/                      # Jinja2 HTML templates
+│   ├── index.html                  # Main dashboard
+│   ├── parking.html                # Parking gate control
+│   ├── register.html               # Vehicle registration form
+│   └── admin.html                  # Administration panel
+│
+├── static/                         # Frontend static assets
+│   ├── css/
+│   │   ├── style.css               # Global styles
+│   │   └── parking.css             # Parking page styles
+│   ├── js/
+│   │   ├── script.js               # Dashboard logic
+│   │   ├── parking.js              # Gate control + SocketIO events
+│   │   ├── register.js             # Registration form logic
+│   │   └── admin.js                # Admin panel logic
+│   └── uploads/                    # Captured images
+│
+├── arduino/                        # Arduino sketches
+│   ├── arduino_parking/
+│   │   └── arduino_parking.ino     # Main parking system sketch
+│   └── test_sensor_servo.ino       # Standalone hardware test
+│
+└── docs/                           # Documentation
+    └── rapport.md                  # This report</code></pre>
+<hr>
+<h2>9. How to Run</h2>
+<h3>9.1 Prerequisites</h3>
+<ul><li>Python 3.8+</li><li>Arduino Uno with HC-SR04 + Servo wired (see Section 6)</li><li>PC webcam</li><li>Arduino IDE (for uploading sketch)</li></ul>
+<h3>9.2 Installation</h3>
+<pre><code># Install Python dependencies
+pip install -r requirements.txt
+
+# Upload Arduino sketch
+# Open arduino/arduino_parking/arduino_parking.ino in Arduino IDE
+# Select Board: Arduino Uno, Port: COM3, then Upload</code></pre>
+<h3>9.3 Running</h3>
+<pre><code># Start the application
+py app.py</code></pre>
+<p>Then open in browser:</p>
+<ul><li><strong>Dashboard</strong>: http://localhost:5000/</li><li><strong>Parking Gate</strong>: http://localhost:5000/parking</li><li><strong>Registration</strong>: http://localhost:5000/register</li><li><strong>Admin Panel</strong>: http://localhost:5000/admin</li></ul>
+<h3>9.4 Testing Arduino Standalone</h3>
+<pre><code># Close app.py first, then run:
+py test_arduino.py</code></pre>
+<hr>
+<h2>10. User Interfaces</h2>
+<p>The Smart Parking System features a modern, responsive web dashboard for both users and administrators.</p>
+<h3>10.1 Main Dashboard</h3>
+<p>Displays real-time system metrics, active cameras, and recent captures.</p>
+<p><img src="screenshots/dashboard.png" alt="Main Dashboard" style="max-width:100%; border-radius:8px; margin:15px 0; box-shadow:0 2px 4px rgba(0,0,0,0.1);"></p>
+<h3>10.2 Parking Gate Control</h3>
+<p>Live distance monitoring, gate status animation, and access logs.</p>
+<p><img src="screenshots/parking.png" alt="Parking Gate Control" style="max-width:100%; border-radius:8px; margin:15px 0; box-shadow:0 2px 4px rgba(0,0,0,0.1);"></p>
+<h3>10.3 Vehicle Registration</h3>
+<p>Form to register new vehicles and process payments.</p>
+<p><img src="screenshots/register.png" alt="Vehicle Registration" style="max-width:100%; border-radius:8px; margin:15px 0; box-shadow:0 2px 4px rgba(0,0,0,0.1);"></p>
+<h3>10.4 Administration Panel</h3>
+<p>Manage registered vehicles, view payment status, and review access history.</p>
+<p><img src="screenshots/admin.png" alt="Admin Panel" style="max-width:100%; border-radius:8px; margin:15px 0; box-shadow:0 2px 4px rgba(0,0,0,0.1);"></p>
+<hr>
+<h2>11. Conclusion</h2>
+<p>This project demonstrates a complete <strong>IoT-integrated web application</strong> that bridges embedded hardware (Arduino sensors and actuators) with a modern web stack (Flask, SocketIO, REST API). The modular architecture ensures clean separation of concerns:</p>
+<ul><li><strong>Services layer</strong> handles all business logic independently</li><li><strong>Routes layer</strong> exposes clean REST API endpoints</li><li><strong>Arduino communication</strong> is fully abstracted behind <code>arduino_service.py</code></li><li><strong>Real-time updates</strong> via WebSocket keep the dashboard responsive</li></ul>
+<p>The system successfully automates parking gate access control with license plate recognition, providing a practical foundation that can be extended with features like multiple camera support, license plate image preprocessing, or integration with payment gateways.</p>
+
+    <hr>
+    <p style="text-align:center; color:#94a3b8; font-size:9pt; margin-top:30px;">
+        Smart Parking System — Project Report
+    </p>
+
+    <!-- Mermaid.js for rendering diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#0ea5e9',
+                primaryTextColor: '#0f172a',
+                primaryBorderColor: '#1e3a5f',
+                lineColor: '#64748b',
+                secondaryColor: '#f1f5f9',
+                tertiaryColor: '#eff6ff',
+                fontSize: '13px'
+            }
+        });
+    </script>
+</body>
+</html>

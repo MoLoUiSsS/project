@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription — Smart Parking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parking.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-car-on"></i>
+                <h2>LAPI<span>Sys</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/parking" class="nav-item"><i class="fa-solid fa-road-barrier"></i> Parking Gate</a>
+                <a href="/register" class="nav-item active"><i class="fa-solid fa-user-plus"></i> Inscription</a>
+                <a href="/admin" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+            </nav>
+
+            <!-- Info widget -->
+            <div class="arduino-widget glass-panel">
+                <div class="widget-header">
+                    <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+                    <h3>Comment ça marche ?</h3>
+                </div>
+                <ol class="how-it-works">
+                    <li><i class="fa-solid fa-user-pen"></i> Entrez vos informations</li>
+                    <li><i class="fa-solid fa-car"></i> Renseignez votre matricule</li>
+                    <li><i class="fa-solid fa-money-bill-wave"></i> Payez les frais de parking</li>
+                    <li><i class="fa-solid fa-door-open"></i> La barrière s'ouvre automatiquement</li>
+                </ol>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar glass-panel">
+                <div class="topbar-title">
+                    <i class="fa-solid fa-user-plus" style="color: var(--primary);"></i>
+                    <h2>Inscription au Parking</h2>
+                </div>
+                <div class="topbar-actions">
+                    <a href="/admin" class="btn-secondary" style="padding:10px 20px; text-decoration:none;">
+                        <i class="fa-solid fa-list"></i> Voir tous les véhicules
+                    </a>
+                </div>
+            </header>
+
+            <div class="register-grid">
+                <!-- Registration Form -->
+                <div class="register-form-card glass-panel">
+                    <div class="form-title">
+                        <div class="form-title-icon"><i class="fa-solid fa-car-on"></i></div>
+                        <div>
+                            <h3>Nouveau Véhicule</h3>
+                            <p>Remplissez le formulaire pour enregistrer votre véhicule</p>
+                        </div>
+                    </div>
+
+                    <form id="register-form" novalidate>
+                        <!-- Owner Name -->
+                        <div class="form-group">
+                            <label for="owner-name">
+                                <i class="fa-solid fa-user"></i> Nom Complet *
+                            </label>
+                            <input type="text" id="owner-name" placeholder="Ex: Mohammed Hammadi" required>
+                            <span class="field-error" id="err-name"></span>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fa-solid fa-phone"></i> Téléphone
+                            </label>
+                            <input type="tel" id="phone" placeholder="Ex: 0550 123 456">
+                        </div>
+
+                        <!-- Plate Number -->
+                        <div class="form-group">
+                            <label for="plate-input">
+                                <i class="fa-solid fa-id-card"></i> Numéro de Matricule *
+                            </label>
+                            <div class="plate-input-wrapper">
+                                <div class="plate-preview" id="plate-preview">
+                                    <span class="plate-text" id="plate-display">__ ___ __</span>
+                                </div>
+                                <input type="text" id="plate-input" placeholder="Ex: 12345 116 16" required maxlength="15">
+                            </div>
+                            <p class="field-hint">Format: NNNNN TTT WW (ex: 12345 116 16)</p>
+                            <span class="field-error" id="err-plate"></span>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" class="btn-primary btn-full" id="btn-register">
+                            <i class="fa-solid fa-paper-plane"></i> Enregistrer le Véhicule
+                        </button>
+                    </form>
+
+                    <!-- Success Message (hidden) -->
+                    <div class="success-message" id="success-msg" style="display:none;">
+                        <div class="success-icon"><i class="fa-solid fa-check-circle"></i></div>
+                        <h3>Véhicule enregistré !</h3>
+                        <p>Votre véhicule a été ajouté. Procédez au paiement pour activer l'accès.</p>
+                        <button class="btn-primary" id="btn-goto-payment" style="margin-top:16px;">
+                            <i class="fa-solid fa-credit-card"></i> Payer les frais de parking
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Card (shown after registration) -->
+                <div class="payment-card glass-panel" id="payment-card">
+                    <div class="payment-header">
+                        <i class="fa-solid fa-receipt"></i>
+                        <h3>Paiement des Frais</h3>
+                    </div>
+
+                    <!-- Payment details -->
+                    <div class="payment-details" id="payment-details">
+                        <div class="payment-row">
+                            <span>Frais de parking mensuel</span>
+                            <span class="payment-amount">2 000 DA</span>
+                        </div>
+                        <div class="payment-row">
+                            <span>Frais d'enregistrement</span>
+                            <span class="payment-amount">500 DA</span>
+                        </div>
+                        <div class="payment-divider"></div>
+                        <div class="payment-row total">
+                            <span>Total à payer</span>
+                            <span class="payment-amount">2 500 DA</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment method selector -->
+                    <div class="payment-methods">
+                        <h4>Méthode de paiement</h4>
+                        <div class="method-options">
+                            <label class="method-option active" id="method-cash">
+                                <input type="radio" name="payment-method" value="cash" checked>
+                                <i class="fa-solid fa-money-bills"></i>
+                                <span>Espèces</span>
+                            </label>
+                            <label class="method-option" id="method-card">
+                                <input type="radio" name="payment-method" value="card">
+                                <i class="fa-solid fa-credit-card"></i>
+                                <span>CIB / Dahabia</span>
+                            </label>
+                            <label class="method-option" id="method-mobile">
+                                <input type="radio" name="payment-method" value="mobile">
+                                <i class="fa-brands fa-google-pay"></i>
+                                <span>Paiement Mobile</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pay button -->
+                    <button class="btn-primary btn-full btn-pay" id="btn-pay" disabled>
+                        <i class="fa-solid fa-lock"></i> Confirmer le Paiement
+                    </button>
+
+                    <!-- Payment success -->
+                    <div class="payment-success" id="payment-success" style="display:none;">
+                        <div class="checkmark-circle">
+                            <svg viewBox="0 0 52 52" class="checkmark">
+                                <circle cx="26" cy="26" r="25" fill="none"/>
+                                <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                            </svg>
+                        </div>
+                        <h3>Paiement confirmé !</h3>
+                        <p id="payment-success-msg">Votre accès au parking est maintenant activé.</p>
+                        <a href="/parking" class="btn-primary" style="display:inline-block; margin-top:16px; text-decoration:none; text-align:center;">
+                            <i class="fa-solid fa-road-barrier"></i> Voir la Barrière
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+</body>
+</html>

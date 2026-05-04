@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.sqlite
+*.db
+.vscode/
+.idea/
+static/uploads/
+*.tex
+*.pdf
+*.docx
+*.rar

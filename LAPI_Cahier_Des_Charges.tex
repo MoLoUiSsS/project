@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, calc}
+
+\title{\textbf{Cahier des Charges Techniques D\'etaill\'e}\\
+\vspace{0.5cm}
+\Large Syst\`eme Intelligent de Lecture Automatique de Plaques d'Immatriculation (LAPI) - Sp\'ecifique au Format Alg\'erien}
+\author{D\'epartement Informatique / Projet LAPI}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction et Contexte}
+Afin d'optimiser le contr\^ole d'acc\`es et la s\'ecurit\'e, ce document stipule les sp\'ecifications exhaustives pour la cr\'eation d'une application de Lecture Automatique de Plaques d'Immatriculation (LAPI). Le d\'efi majeur r\'eside dans le bruitage des images en temps r\'eel et la n\'ecessit\'e absolue de d\'ecoder les blocs sp\'ecifiques de l'immatriculation alg\'erienne.
+
+\section{Pile Technologique Exig\'ee (Tools Used)}
+L'architecture logicielle doit \^etre d\'ecoupl\'ee et hautement r\'eactive.
+\begin{itemize}
+    \item \textbf{Serveur Backend:} Python 3.x coupl\'e au micro-framework \textbf{Flask}.
+    \item \textbf{Moteur OCR (Optical Character Recognition):} L'utilisation de l'API Cloud \textbf{Free OCR API (ocr.space)}, sp\'ecifiquement le moteur d'apprentissage profond 2 (\textit{OCREngine=2}).
+    \item \textbf{Temps R\'eel:} \textbf{Socket.IO} via le module \texttt{Flask-SocketIO} pour la diffusion sans requ\^ete (push) des nouvelles captures vers le front-end.
+    \item \textbf{Base de Donn\'ees:} \textbf{SQLite3} pour la persistance l\'eg\`ere et sans configuration des journaux.
+    \item \textbf{Client Frontend:} HTML5, CSS3 int\'egrant l'esth\'etique \textbf{Glassmorphism} (effets de verre d\'epoli et de flou) et \textbf{Vanilla JavaScript} natif sans frameworks lourds pour un traitement DOM imm\'ediat.
+\end{itemize}
+
+\section{Structure de la Base de Donn\'ees (Database Schema)}
+Le syst\`eme enregistrera toutes les requ\^etes OCR r\'eussies. Un sch\'ema statique est d\'efini ainsi:
+
+\begin{center}
+\begin{tabular}{|l|l|p{8cm}|}
+\hline
+\textbf{Champ} & \textbf{Type (SQLite)} & \textbf{R\^ole} \\
+\hline
+\texttt{id\_capture} & INTEGER & Cl\'e primaire, auto-incr\'ement\'ee. \\
+\texttt{plaque\_immatriculation} & TEXT & Num\'ero final apr\`es nettoyage par Regex. \\
+\texttt{date\_heure\_capture} & TEXT & Horodatage (\texttt{YYYY-MM-DD HH:MM:SS}). \\
+\texttt{chemin\_image} & TEXT & Emplacement syst\`eme de l'image t\'el\'echarg\'ee.\\
+\texttt{fiabilite\_lecture} & REAL & Pourcentage de d\'etection rapport\'e par l'API\\
+\texttt{id\_camera} & INTEGER & ID source (ex: 1 = Smartphone X).\\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Logique d'Extraction (OCR Catch and Clean) et D\'ecodage (Wilaya \& Type)}
+Le syst\`eme ne doit jamais ins\'erer les r\'esultats OCR bruts dans la base de donn\'ees en raison du taux de salissure des plaques physiques. 
+
+\subsection{Algorithme de Filtrage (Python)}
+\begin{enumerate}
+    \item \textbf{R\'eception:} R\'ecup\'eration de la cha\^ine brute depuis l'API.
+    \item \textbf{Catch \& Clean:} Application de l'expression r\'eguli\`ere \texttt{r'[\^{}\textbackslash d\textbackslash s\textbackslash-]'} pour supprimer d\'efinitivement toute lettre (\`a l'exception des espaces et tirets).
+    \item \textbf{Validation stricte:} V\'erification via le Regex \texttt{(\textbackslash d\{4,6\})[\textbackslash s\textbackslash-]+(\textbackslash d\{3\})[\textbackslash s\textbackslash-]+(\textbackslash d\{2\})}.
+    \item \textbf{Reconstruction Heuristique:} En cas d'\'echec du Regex, un extracteur extr\^eme isole uniquement les chiffres. Si la taille d\'epasse 9 caract\`eres, le code Wilaya est identifi\'e r\'etrospectivement par les 2 derniers chiffres.
+\end{enumerate}
+
+\subsection{D\'ecodage des M\'etadonn\'ees Alg\'eriennes (JavaScript)}
+C\^ot\'e client, la fonction \texttt{parseAlgerianPlate()} re\c{c}oit une cha\^ine valid\'ee de type \texttt{MATRICULE TYPE\_ANNEE WILAYA}.
+
+\begin{itemize}
+    \item \textbf{Identification de la Wilaya:} Le dernier segment subit une \'evaluation num\'erique. Les valeurs $\le 58$ utilisent un mapping strict en JavaScript (ex. $31 \rightarrow$ Oran, $16 \rightarrow$ Alger). Les valeurs sup\'erieures \`a 58 et $\le 69$ sont class\'ees comme \textit{"Nouvelles Wilayas"}.
+    \item \textbf{Cat\'egorie du V\'ehicule:} Le premier chiffre du segment central est isol\'e (\texttt{charAt(0)}). 1 = Tourisme, 2 = Camion, 9 = Moto.
+    \item \textbf{D\'eduction de l'Ann\'ee:} Les deux caract\`eres suivants forment l'ann\'ee. Si le chiffre est $> 50$, le mill\'enaire ratiocin\'e est le 20\'eme (ex: $99 \rightarrow 1999$). S'il est $\le 50$, il appartient au 21\'eme si\`ecle ($22 \rightarrow 2022$).
+\end{itemize}
+
+\section{Diagramme Synth\'etique du D\'ecoupage LAPI}
+Le sch\'ema ci-dessous d\'ecrit le d\'ecoupage logique d'une plaque intercept\'ee ``56789 120 34''.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=1.5cm, auto,
+    box/.style={rectangle, draw, thick, align=center, fill=green!10, rounded corners, minimum width=2.5cm, minimum height=1cm},
+    arrow/.style={->, thick, >=stealth}]
+
+    \node[box, fill=black, text=yellow, font=\Huge\bfseries] (plate) {56789 120 34};
+    
+    \node[box, below left=of plate, xshift=-0.5cm] (mat) {Matricule\\(56789)};
+    \node[box, below=of plate] (type) {Type(1)\\Ann\'ee(20)};
+    \node[box, below right=of plate, xshift=0.5cm] (wil) {Wilaya\\(34)};
+    
+    \draw[arrow] (plate.south) -- (mat.north);
+    \draw[arrow] (plate.south) -- (type.north);
+    \draw[arrow] (plate.south) -- (wil.north);
+
+\end{tikzpicture}
+\caption{Structure Standard Alg\'erienne Extraite par le Syst\`eme}
+\label{fig:plate_split}
+\end{figure}
+
+\section{Interface Utilisateur \& Annexes (Screenshots)}
+L'interface finale \textbf{doit inclure}:
+\begin{enumerate}
+    \item Un tableau de d\'etail extrayant graphiquement les 3 blocs vus \`a la Figure~\ref{fig:plate_split}.
+    \item Une capacit\'e de \textbf{Groupement Dynamique} natif (via un \texttt{<select>}) r\'eorganisant les divs HTML en temps r\'eel lors de la r\'eception d'un \'ev\'enement par Socket.IO sans requ\^eter la base SQLite cible.
+\end{enumerate}
+Les Figures illustrant le rendu exact du Tableau de Bord (Dashboard) (\texttt{capture\_details.png}) et du m\'ecanisme de regroupement (\texttt{grouping\_dropdown.png}) devront \^etre ajout\'ees en rapport de production finale.
+
+\section{Conclusion}
+Ce syst\`eme garantit de ne transf\'erer que de la donn\'ee pure, structur\'ee et propre dans le SGBD, r\'eduisant drastiquement les erreurs logiques de la base d'immatriculations.
+
+\end{document}

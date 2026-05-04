@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Gate — Smart Parking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parking.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-car-on"></i>
+                <h2>LAPI<span>Sys</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/parking" class="nav-item active"><i class="fa-solid fa-road-barrier"></i> Parking Gate</a>
+                <a href="/register" class="nav-item"><i class="fa-solid fa-user-plus"></i> Inscription</a>
+                <a href="/admin" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+            </nav>
+
+            <!-- Arduino Connection Panel -->
+            <div class="arduino-widget glass-panel">
+                <div class="widget-header">
+                    <i class="fa-solid fa-microchip"></i>
+                    <h3>Arduino</h3>
+                    <span class="status-dot" id="arduino-dot"></span>
+                </div>
+                <p id="arduino-status-text">Déconnecté</p>
+
+                <div class="port-selector">
+                    <select id="port-select" class="port-select-input">
+                        <option value="">Auto-détect</option>
+                    </select>
+                    <button id="btn-connect" class="btn-connect">
+                        <i class="fa-solid fa-plug"></i> Connecter
+                    </button>
+                </div>
+
+                <div class="distance-display">
+                    <div class="distance-label"><i class="fa-solid fa-ruler"></i> Distance</div>
+                    <div class="distance-value" id="distance-value">-- cm</div>
+                    <div class="distance-bar-container">
+                        <div class="distance-bar" id="distance-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar glass-panel">
+                <div class="topbar-title">
+                    <i class="fa-solid fa-road-barrier" style="color: var(--primary);"></i>
+                    <h2>Contrôle de Barrière Parking</h2>
+                </div>
+                <div class="topbar-actions">
+                    <button id="btn-manual-capture" class="btn-primary ripple" style="padding:10px 20px;">
+                        <i class="fa-solid fa-camera"></i> Test Manuel (Webcam)
+                    </button>
+                    <a href="/register" class="btn-secondary" style="padding:10px 20px; text-decoration:none;">
+                        <i class="fa-solid fa-user-plus"></i> Enregistrer un véhicule
+                    </a>
+                </div>
+            </header>
+
+            <div class="parking-grid">
+                <!-- Gate Visualization -->
+                <div class="gate-section glass-panel">
+                    <div class="gate-header">
+                        <h3><i class="fa-solid fa-road-barrier"></i> Barrière</h3>
+                        <span class="gate-status-badge" id="gate-badge">FERMÉE</span>
+                    </div>
+
+                    <!-- Gate Animation -->
+                    <div class="gate-scene">
+                        <div class="gate-post left-post"></div>
+                        <div class="gate-arm-wrapper">
+                            <div class="gate-arm" id="gate-arm"></div>
+                        </div>
+                        <div class="gate-post right-post"></div>
+
+                        <!-- Car approaching animation -->
+                        <div class="car-icon" id="car-icon">
+                            <i class="fa-solid fa-car-side"></i>
+                        </div>
+
+                        <!-- Sensor wave animation -->
+                        <div class="sensor-waves" id="sensor-waves">
+                            <div class="wave w1"></div>
+                            <div class="wave w2"></div>
+                            <div class="wave w3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gate Result Panel -->
+                    <div class="gate-result-panel" id="gate-result-panel">
+                        <div class="waiting-state">
+                            <i class="fa-solid fa-satellite-dish fa-pulse"></i>
+                            <p>En attente de détection...</p>
+                        </div>
+                    </div>
+
+                    <!-- Webcam preview (hidden, used for capture) -->
+                    <video id="webcam-preview" autoplay playsinline style="display:none;"></video>
+                    <canvas id="capture-canvas" style="display:none;"></canvas>
+                </div>
+
+                <!-- Sensor Stats -->
+                <div class="sensor-section">
+                    <!-- Real-time sensor gauge -->
+                    <div class="sensor-card glass-panel">
+                        <h3><i class="fa-solid fa-radar"></i> Capteur Ultrasonique</h3>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 200 120">
+                                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="12" stroke-linecap="round"/>
+                                <path class="gauge-fill" id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 251"/>
+                            </svg>
+                            <div class="gauge-value">
+                                <span id="gauge-number">--</span>
+                                <span class="gauge-unit">cm</span>
+                            </div>
+                        </div>
+                        <div class="gauge-labels">
+                            <span>0 cm</span>
+                            <span>CAR ZONE</span>
+                            <span>200 cm</span>
+                        </div>
+                        <div class="detection-threshold">
+                            <div class="threshold-bar">
+                                <div class="threshold-line" style="left: 15%;"></div>
+                                <span class="threshold-label">Seuil: 30cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats row -->
+                    <div class="mini-stats">
+                        <div class="mini-stat glass-panel">
+                            <div class="mini-stat-icon green"><i class="fa-solid fa-door-open"></i></div>
+                            <div>
+                                <div class="mini-stat-label">Accès Accordés</div>
+                                <div class="mini-stat-val" id="stat-granted">0</div>
+                            </div>
+                        </div>
+                        <div class="mini-stat glass-panel">
+                            <div class="mini-stat-icon red"><i class="fa-solid fa-ban"></i></div>
+                            <div>
+                                <div class="mini-stat-label">Accès Refusés</div>
+                                <div class="mini-stat-val" id="stat-denied">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Access Log Feed -->
+                <div class="log-section glass-panel">
+                    <div class="section-header">
+                        <h3><i class="fa-solid fa-list"></i> Journal des Accès</h3>
+                        <span class="live-indicator"><span class="pulse"></span> LIVE</span>
+                    </div>
+                    <div class="access-log-list" id="access-log-list">
+                        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Gate Open/Deny Overlay (full screen flash) -->
+    <div class="gate-flash" id="gate-flash"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/parking.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — Smart Parking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parking.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-car-on"></i>
+                <h2>LAPI<span>Sys</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/parking" class="nav-item"><i class="fa-solid fa-road-barrier"></i> Parking Gate</a>
+                <a href="/register" class="nav-item"><i class="fa-solid fa-user-plus"></i> Inscription</a>
+                <a href="/admin" class="nav-item active"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+            </nav>
+
+            <!-- Admin stats summary -->
+            <div class="arduino-widget glass-panel">
+                <div class="widget-header">
+                    <i class="fa-solid fa-chart-pie" style="color:var(--secondary);"></i>
+                    <h3>Résumé</h3>
+                </div>
+                <div class="admin-sidebar-stats">
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-val" id="sb-total">0</span>
+                        <span class="sidebar-stat-label">Véhicules</span>
+                    </div>
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-val green" id="sb-paid">0</span>
+                        <span class="sidebar-stat-label">Payés</span>
+                    </div>
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-val red" id="sb-unpaid">0</span>
+                        <span class="sidebar-stat-label">En attente</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar glass-panel">
+                <div class="topbar-title">
+                    <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i>
+                    <h2>Panneau Administrateur</h2>
+                </div>
+                <div class="topbar-actions">
+                    <div class="search-bar" style="width:250px;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="admin-search" placeholder="Rechercher un véhicule...">
+                    </div>
+                    <a href="/register" class="btn-primary" style="padding:10px 20px; text-decoration:none;">
+                        <i class="fa-solid fa-plus"></i> Ajouter
+                    </a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon blue"><i class="fa-solid fa-car"></i></div>
+                        <div class="stat-info">
+                            <h4>Total Véhicules</h4>
+                            <span class="stat-value" id="stat-total">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="stat-info">
+                            <h4>Payés / Actifs</h4>
+                            <span class="stat-value" id="stat-paid">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background:rgba(251,191,36,0.15); color:#fbbf24;"><i class="fa-solid fa-clock"></i></div>
+                        <div class="stat-info">
+                            <h4>En Attente</h4>
+                            <span class="stat-value" id="stat-unpaid">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon purple"><i class="fa-solid fa-key"></i></div>
+                        <div class="stat-info">
+                            <h4>Accès Aujourd'hui</h4>
+                            <span class="stat-value" id="stat-today">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="admin-tabs glass-panel">
+                    <button class="tab-btn active" id="tab-vehicles" onclick="switchTab('vehicles')">
+                        <i class="fa-solid fa-car"></i> Véhicules Enregistrés
+                    </button>
+                    <button class="tab-btn" id="tab-logs" onclick="switchTab('logs')">
+                        <i class="fa-solid fa-list-check"></i> Journal des Accès
+                    </button>
+                </div>
+
+                <!-- Vehicles Table -->
+                <div class="admin-table-card glass-panel" id="panel-vehicles">
+                    <div class="table-header">
+                        <h3><i class="fa-solid fa-car"></i> Véhicules Enregistrés</h3>
+                        <button class="btn-secondary" onclick="loadVehicles()">
+                            <i class="fa-solid fa-rotate"></i> Actualiser
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="vehicles-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Propriétaire</th>
+                                    <th>Matricule</th>
+                                    <th>Téléphone</th>
+                                    <th>Date d'inscription</th>
+                                    <th>Statut</th>
+                                    <th>Date de paiement</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicles-tbody">
+                                <tr><td colspan="8" class="table-loading"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Access Logs Table -->
+                <div class="admin-table-card glass-panel" id="panel-logs" style="display:none;">
+                    <div class="table-header">
+                        <h3><i class="fa-solid fa-list-check"></i> Journal des Accès</h3>
+                        <button class="btn-secondary" onclick="loadLogs()">
+                            <i class="fa-solid fa-rotate"></i> Actualiser
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table" id="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Matricule</th>
+                                    <th>Horodatage</th>
+                                    <th>Décision</th>
+                                    <th>Raison</th>
+                                    <th>Distance (cm)</th>
+                                    <th>Image</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-tbody">
+                                <tr><td colspan="7" class="table-loading"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
