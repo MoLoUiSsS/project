@@ -21,3 +21,8 @@ def register_page():
 @pages_bp.route('/admin')
 def admin_page():
     return render_template('admin.html')
+
+
+@pages_bp.route('/camera')
+def camera_page():
+    return render_template('camera.html')

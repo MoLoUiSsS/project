@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caméra IoT — LAPISys</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #0a1628 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .header {
+            width: 100%;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header .logo i { color: #3b82f6; font-size: 24px; }
+        .header .logo span { color: #3b82f6; }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .status-pill.connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .status-pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-pill.connected .dot {
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        .camera-container {
+            flex: 1;
+            width: 100%;
+            max-width: 640px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .camera-view {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .camera-view video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-view canvas {
+            display: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .scan-corners {
+            position: absolute;
+            inset: 15%;
+        }
+
+        .scan-corners::before,
+        .scan-corners::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: #3b82f6;
+            border-style: solid;
+        }
+
+        .scan-corners::before {
+            top: 0; left: 0;
+            border-width: 3px 0 0 3px;
+            border-radius: 4px 0 0 0;
+        }
+
+        .scan-corners::after {
+            top: 0; right: 0;
+            border-width: 3px 3px 0 0;
+            border-radius: 0 4px 0 0;
+        }
+
+        .scan-corners-bottom {
+            position: absolute;
+            inset: 15%;
+        }
+
+        .scan-corners-bottom::before,
+        .scan-corners-bottom::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: #3b82f6;
+            border-style: solid;
+        }
+
+        .scan-corners-bottom::before {
+            bottom: 0; left: 0;
+            border-width: 0 0 3px 3px;
+            border-radius: 0 0 0 4px;
+        }
+
+        .scan-corners-bottom::after {
+            bottom: 0; right: 0;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 4px 0;
+        }
+
+        .capture-flash {
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.1s;
+            pointer-events: none;
+        }
+
+        .capture-flash.active {
+            opacity: 0.8;
+        }
+
+        .info-card {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .info-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card h3 i { color: #3b82f6; }
+
+        .info-card p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.5;
+        }
+
+        .stats-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-mini {
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .stat-mini .val {
+            font-size: 28px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-mini .label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        .last-capture {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .last-capture.visible { display: flex; }
+        .last-capture i { color: #3b82f6; font-size: 18px; }
+
+        .btn-start {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-start:active { transform: scale(0.98); }
+
+        .btn-start.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .btn-start.active::after {
+            content: ' (Actif)';
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-car-on"></i>
+            LAPI<span>Sys</span>
+        </div>
+        <div class="status-pill" id="status-pill">
+            <span class="dot"></span>
+            <span id="status-text">Déconnecté</span>
+        </div>
+    </div>
+
+    <div class="camera-container">
+        <div class="camera-view">
+            <video id="camera-video" autoplay playsinline muted></video>
+            <canvas id="capture-canvas"></canvas>
+            <div class="camera-overlay">
+                <div class="scan-corners"></div>
+                <div class="scan-corners-bottom"></div>
+            </div>
+            <div class="capture-flash" id="capture-flash"></div>
+        </div>
+
+        <button class="btn-start" id="btn-start">
+            <i class="fa-solid fa-camera"></i> Activer la Caméra
+        </button>
+
+        <div class="last-capture" id="last-capture">
+            <i class="fa-solid fa-image"></i>
+            <span id="last-capture-text">—</span>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="val" id="capture-count">0</div>
+                <div class="label">Captures</div>
+            </div>
+            <div class="stat-mini">
+                <div class="val" id="connection-time">00:00</div>
+                <div class="label">Temps Connecté</div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fa-solid fa-circle-info"></i> Mode Caméra IoT</h3>
+            <p>
+                Placez votre téléphone face à l'entrée du parking.
+                Quand un véhicule est détecté par le capteur ultrasonique,
+                la caméra capture automatiquement une image de la plaque.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const video = document.getElementById('camera-video');
+        const canvas = document.getElementById('capture-canvas');
+        const btnStart = document.getElementById('btn-start');
+        const statusPill = document.getElementById('status-pill');
+        const statusText = document.getElementById('status-text');
+        const captureFlash = document.getElementById('capture-flash');
+        const lastCapture = document.getElementById('last-capture');
+        const lastCaptureText = document.getElementById('last-capture-text');
+        const captureCountEl = document.getElementById('capture-count');
+        const connectionTimeEl = document.getElementById('connection-time');
+
+        let stream = null;
+        let captureCount = 0;
+        let connectedAt = null;
+        let timerInterval = null;
+
+        btnStart.addEventListener('click', async () => {
+            if (stream) {
+                stopCamera();
+                return;
+            }
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                });
+
+                video.srcObject = stream;
+                btnStart.innerHTML = '<i class="fa-solid fa-stop"></i> Arrêter la Caméra';
+                btnStart.classList.add('active');
+
+                socket.emit('phone_connected');
+                statusPill.classList.add('connected');
+                statusText.textContent = 'Connecté';
+
+                connectedAt = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+
+            } catch (err) {
+                alert("Impossible d'accéder à la caméra: " + err.message);
+            }
+        });
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
+            video.srcObject = null;
+            btnStart.innerHTML = '<i class="fa-solid fa-camera"></i> Activer la Caméra';
+            btnStart.classList.remove('active');
+
+            socket.emit('phone_disconnected');
+            statusPill.classList.remove('connected');
+            statusText.textContent = 'Déconnecté';
+
+            clearInterval(timerInterval);
+            connectionTimeEl.textContent = '00:00';
+        }
+
+        socket.on('request_capture', () => {
+            if (!stream) return;
+
+            captureFlash.classList.add('active');
+            setTimeout(() => captureFlash.classList.remove('active'), 200);
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.92);
+            socket.emit('phone_capture_result', { image: imageData });
+
+            captureCount++;
+            captureCountEl.textContent = captureCount;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fr-DZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            lastCaptureText.textContent = `Capture #${captureCount} — ${timeStr}`;
+            lastCapture.classList.add('visible');
+        });
+
+        socket.on('disconnect', () => {
+            statusPill.classList.remove('connected');
+            statusText.textContent = 'Déconnecté';
+        });
+
+        socket.on('connect', () => {
+            if (stream) {
+                socket.emit('phone_connected');
+                statusPill.classList.add('connected');
+                statusText.textContent = 'Connecté';
+            }
+        });
+
+        function updateTimer() {
+            if (!connectedAt) return;
+            const elapsed = Math.floor((Date.now() - connectedAt) / 1000);
+            const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const sec = String(elapsed % 60).padStart(2, '0');
+            connectionTimeEl.textContent = `${min}:${sec}`;
+        }
+    </script>
+</body>
+</html>
