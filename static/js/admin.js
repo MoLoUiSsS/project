@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     let vehiclesData = [];
+    let logsData = [];
     let searchTerm = '';
 
     window.loadVehicles = function () {
@@ -48,16 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td><span class="plate-badge">${escHtml(v.plaque_immatriculation)}</span></td>
                 <td style="color:var(--text-muted);">${escHtml(v.phone || '—')}</td>
-                <td style="font-size:13px; color:var(--text-muted);">${formatDate(v.date_registered)}</td>
+                <td>
+                    <select class="status-select" onchange="changeStatus(${v.id}, this.value)" style="padding:4px; border-radius:4px; font-size:12px; background:rgba(255,255,255,0.1); color:white; border:none;">
+                        <option value="normal" ${v.status === 'normal' ? 'selected' : ''}>Normal</option>
+                        <option value="whitelist" ${v.status === 'whitelist' ? 'selected' : ''}>Liste Blanche</option>
+                        <option value="blacklist" ${v.status === 'blacklist' ? 'selected' : ''}>Liste Noire</option>
+                    </select>
+                </td>
                 <td>
                     <span class="status-badge ${isPaid ? 'paid' : 'unpaid'}">
                         <i class="fa-solid ${isPaid ? 'fa-circle-check' : 'fa-clock'}"></i>
                         ${isPaid ? 'Payé' : 'En attente'}
                     </span>
-                </td>
-                <td style="font-size:13px; color:var(--text-muted);">
-                    ${v.payment_date ? formatDate(v.payment_date) : '—'}
-                    ${v.payment_amount ? `<br><span style="font-size:11px; color:var(--success);">${v.payment_amount} DA</span>` : ''}
+                    ${v.payment_date ? `<br><span style="font-size:11px; color:var(--text-muted);">${formatDate(v.payment_date)}</span>` : ''}
                 </td>
                 <td>
                     <div class="action-btns">
@@ -123,10 +127,38 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
+    window.changeStatus = function (id, status) {
+        fetch(`/api/vehicles/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                showToast('Statut mis à jour', 'success');
+            } else {
+                showToast(data.error || 'Erreur', 'error');
+            }
+        });
+    };
+
+    window.controlGate = function(action) {
+        const command = action === 'open' ? 'GATE:OPEN' : 'GATE:CLOSE';
+        fetch('/api/arduino/command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command })
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                showToast(action === 'open' ? 'Ouverture...' : 'Fermeture...', 'info');
+            }
+        });
+    };
+
     window.loadLogs = function () {
         fetch('/api/access-logs')
             .then(r => r.json())
             .then(logs => {
+                logsData = logs;
                 renderLogs(logs);
                 const today = new Date().toISOString().split('T')[0];
                 const todayCount = logs.filter(l => (l.timestamp || '').startsWith(today)).length;
@@ -174,15 +206,134 @@ document.addEventListener('DOMContentLoaded', () => {
     window.switchTab = function (tab) {
         document.getElementById('tab-vehicles').classList.toggle('active', tab === 'vehicles');
         document.getElementById('tab-logs').classList.toggle('active', tab === 'logs');
+        document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
+        
         document.getElementById('panel-vehicles').style.display = tab === 'vehicles' ? 'flex' : 'none';
         document.getElementById('panel-logs').style.display = tab === 'logs' ? 'flex' : 'none';
+        document.getElementById('panel-analytics').style.display = tab === 'analytics' ? 'flex' : 'none';
+        
         if (tab === 'logs') loadLogs();
+        if (tab === 'analytics') loadAnalytics();
+    };
+
+    let chartInstance = null;
+    window.loadAnalytics = function() {
+        fetch('/api/analytics/peak_hours')
+            .then(r => r.json())
+            .then(data => {
+                const ctx = document.getElementById('occupancyChart');
+                if(!ctx) return;
+                
+                if(chartInstance) {
+                    chartInstance.destroy();
+                }
+                
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Passages par heure',
+                            data: data.data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: 'rgba(255,255,255,0.7)' } }
+                        },
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' }, beginAtZero: true },
+                            x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } }
+                        }
+                    }
+                });
+            });
     };
 
     document.getElementById('admin-search').addEventListener('input', (e) => {
         searchTerm = e.target.value;
         renderVehicles(vehiclesData);
     });
+
+    // ---- Live Phone Camera Preview ----
+    const adminPhoneDot = document.getElementById('admin-phone-dot');
+    const adminPhoneStatus = document.getElementById('admin-phone-status');
+    const adminCamCanvas = document.getElementById('admin-cam-canvas');
+    const adminCamPlaceholder = document.getElementById('admin-cam-placeholder');
+
+    socket.on('camera_status', (data) => {
+        if (data.connected) {
+            adminPhoneDot.className = 'status-dot connected';
+            adminPhoneStatus.textContent = 'Tél. connecté (Live)';
+        } else {
+            adminPhoneDot.className = 'status-dot';
+            adminPhoneStatus.textContent = 'Tél. déconnecté';
+            adminCamCanvas.style.display = 'none';
+            adminCamPlaceholder.style.display = 'block';
+        }
+    });
+
+    socket.on('phone_frame', (data) => {
+        if (!data.image) return;
+        adminCamCanvas.style.display = 'block';
+        adminCamPlaceholder.style.display = 'none';
+        const img = new Image();
+        img.onload = () => {
+            adminCamCanvas.width = img.width;
+            adminCamCanvas.height = img.height;
+            adminCamCanvas.getContext('2d').drawImage(img, 0, 0);
+        };
+        img.src = data.image;
+    });
+
+    // Load initial camera status
+    fetch('/api/camera/status').then(r => r.json()).then(d => {
+        if (d.connected) {
+            adminPhoneDot.className = 'status-dot connected';
+            adminPhoneStatus.textContent = 'Tél. connecté (Live)';
+        }
+    });
+
+    // ---- CSV Export ----
+    window.exportCSV = function(type) {
+        if (type === 'vehicles') {
+            if (!vehiclesData.length) { showToast('Aucune donnée à exporter', 'info'); return; }
+            const headers = ['ID', 'Propriétaire', 'Plaque', 'Téléphone', 'Statut', 'Payé', 'Date Paiement'];
+            const rows = vehiclesData.map(v => [
+                v.id, v.owner_name, v.plaque_immatriculation, v.phone || '',
+                v.status, v.is_paid ? 'Oui' : 'Non', v.payment_date || ''
+            ]);
+            downloadCSV('vehicules_lapi.csv', headers, rows);
+        } else if (type === 'logs') {
+            if (!logsData.length) { showToast('Aucun journal à exporter', 'info'); return; }
+            const headers = ['ID', 'Plaque', 'Horodatage', 'Décision', 'Raison', 'Distance (cm)'];
+            const rows = logsData.map(l => [
+                l.id, l.plaque_immatriculation, l.timestamp,
+                l.access_granted ? 'AUTORISÉ' : 'REFUSÉ',
+                l.reason || '', l.distance_cm || ''
+            ]);
+            downloadCSV('journal_acces_lapi.csv', headers, rows);
+        }
+    };
+
+    function downloadCSV(filename, headers, rows) {
+        const BOM = '\uFEFF';
+        const csv = BOM + [headers, ...rows].map(r =>
+            r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')
+        ).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        showToast(`Exporté : ${filename}`, 'success');
+    }
 
     socket.on('vehicle_registered', () => loadVehicles());
     socket.on('vehicle_updated', () => loadVehicles());

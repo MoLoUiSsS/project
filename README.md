@@ -1,6 +1,6 @@
-# LAPISys — Smart Parking System
+# ParkNet — Smart IoT Parking Management Platform
 
-Système intelligent de parking avec reconnaissance automatique de plaques d'immatriculation (LAPI) algériennes, contrôle de barrière via Arduino, et interface web temps réel.
+Plateforme intelligente de gestion de parking avec contrôle d'accès automatisé, reconnaissance de plaques (OCR), caméra smartphone IoT, barrière Arduino et tableau de bord temps réel.
 
 ## Fonctionnalités
 

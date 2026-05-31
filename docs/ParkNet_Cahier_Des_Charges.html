@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cahier des Charges - ParkNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+<style>
+    :root {
+        --bg: #050913;
+        --surface: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --primary: #3b82f6;
+        --accent: #8b5cf6;
+    }
+    body {
+        font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.7;
+        color: var(--text);
+        background-color: var(--bg);
+        background-image: 
+            radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
+            radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+        max-width: 950px;
+        margin: 0 auto;
+        padding: 40px;
+    }
+    
+    /* Scroll Progress Bar */
+    #progress-bar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent), #10b981);
+        width: 0%;
+        z-index: 9999;
+        transition: width 0.1s;
+    }
+
+    h1, h2, h3, h4 { color: #fff; font-weight: 700; }
+    
+    h1 {
+        text-align: center;
+        font-size: 2.8em;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    h2 {
+        font-size: 1.8em;
+        margin-top: 50px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+        color: #60a5fa;
+    }
+
+    h3 {
+        font-size: 1.3em;
+        color: #a78bfa;
+        margin-top: 30px;
+    }
+
+    p, li { color: var(--muted); font-size: 1.05em; }
+    
+    ul, ol { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+
+    hr { border: 0; height: 1px; background: var(--border); margin: 40px 0; }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 30px 0;
+        background: var(--surface);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+    th, td {
+        padding: 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    th {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85em;
+        letter-spacing: 1px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+
+    /* Code blocks */
+    code {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: 'Fira Code', monospace;
+        color: #34d399;
+        font-size: 0.9em;
+    }
+    pre {
+        background-color: #0f172a;
+        border: 1px solid var(--border);
+        padding: 20px;
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+    pre code {
+        background: none;
+        padding: 0;
+        color: #a5f3fc;
+    }
+
+    /* Mermaid Diagrams */
+    .mermaid {
+        margin: 40px 0;
+        text-align: center;
+        background: var(--surface);
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    /* Buttons */
+    .print-button {
+        display: block;
+        width: 320px;
+        margin: 0 auto 40px auto;
+        padding: 16px;
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        border: none;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .print-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Links */
+    a { color: #60a5fa; text-decoration: none; transition: color 0.2s; }
+    a:hover { color: #93c5fd; text-decoration: underline; }
+
+    /* Print styles */
+    @media print {
+        @page { size: auto; margin: 20mm; }
+        body { 
+            background: white !important; 
+            color: black !important; 
+            padding: 0; 
+            max-width: 100%;
+        }
+        .print-button, #progress-bar { display: none !important; }
+        h1, h2, h3, h4, th { color: black !important; -webkit-text-fill-color: black !important; }
+        p, li, td { color: #333 !important; }
+        table, pre, .mermaid { border: 1px solid #ccc !important; background: white !important; box-shadow: none !important; }
+        a { color: #000 !important; }
+    }
+</style>
+
+</head>
+<body>
+    <div id="progress-bar"></div>
+    
+    <button class="print-button" onclick="window.print()">
+        🖨️ Imprimer / Sauvegarder en PDF
+    </button>
+    
+    <div class="content">
+        <h1>Cahier des Charges Fonctionnel et Technique</h1>
+<h2>Projet : ParkNet — Système Intelligent de Gestion de Parking &amp; Contrôle d'Accès IoT</h2>
+<hr />
+<h3><strong>Sommaire</strong></h3>
+<ol>
+<li><a href="#1-présentation-du-projet">Présentation du Projet</a></li>
+<li><a href="#2-organisation-de-léquipe">Organisation de l'Équipe</a></li>
+<li><a href="#3-expression-des-besoins">Expression des Besoins</a></li>
+<li><a href="#4-exigences-fonctionnelles">Exigences Fonctionnelles</a></li>
+<li><a href="#5-exigences-non-fonctionnelles">Exigences Non-Fonctionnelles</a></li>
+<li><a href="#6-architecture-technique--matérielle">Architecture Technique &amp; Matérielle</a></li>
+<li><a href="#7-modèle-de-données">Modèle de Données</a></li>
+<li><a href="#8-contraintes--risques">Contraintes &amp; Risques</a></li>
+</ol>
+<hr />
+<h2>1. Présentation du Projet</h2>
+<h3>1.1 Contexte</h3>
+<p>Dans un contexte d'urbanisation croissante et de numérisation des infrastructures, la gestion des accès aux parkings (publics ou privés) demeure souvent manuelle, coûteuse et sujette aux erreurs humaines. L'utilisation de barrières traditionnelles avec des agents physiques ou des systèmes à tickets engendre des files d'attente, des coûts de personnel élevés, et complique la traçabilité des entrées/sorties.</p>
+<h3>1.2 Objectif du Projet</h3>
+<p>Le projet <strong>ParkNet</strong> a pour vocation de concevoir et développer un système de contrôle d'accès de bout en bout, automatisé et intelligent. Il repose sur la technologie de <strong>Lecture Automatique de Plaques d'Immatriculation (LAPI)</strong>. Le système doit pouvoir :
+- Détecter physiquement l'approche d'un véhicule.
+- Capturer l'image de sa plaque d'immatriculation.
+- Analyser cette image via un service d'OCR (Optical Character Recognition).
+- Autoriser ou refuser l'accès en fonction d'une base de données centralisée.
+- Piloter l'ouverture de la barrière de manière autonome.</p>
+<h3>1.3 Périmètre</h3>
+<p>Le système couvre à la fois :
+- <strong>La dimension matérielle (IoT) :</strong> Capteurs, microcontrôleur, actionneurs, et dispositif de capture (smartphone).
+- <strong>La dimension logicielle :</strong> Serveur local temps-réel, traitement d'images, intégration d'API cloud, et interface d'administration (Dashboard).</p>
+<hr />
+<h2>2. Organisation de l'Équipe</h2>
+<p>Ce projet s'inscrit dans le cadre du module "Systèmes Embarqués" à l'ESI-SBA (Année 2026). La répartition des rôles a été structurée pour couvrir l'intégralité du cycle de vie du développement logiciel et matériel.</p>
+<p><strong>Membres du Groupe et Rôles :</strong>
+- <strong>HAMMADI Mohammed</strong> : Chef de Projet, Back-End, OCR, Arduino
+- <strong>FERGAG Ayoub</strong> : Implémentation OCR
+- <strong>RAHO Narjes</strong> : Front-End
+- <strong>YOUSFI Naouafil</strong> : Front-End</p>
+<hr />
+<h2>3. Expression des Besoins</h2>
+<h3>3.1 Besoins Utilisateurs (User Stories)</h3>
+<ul>
+<li><strong>En tant qu'administrateur du parking</strong>, je veux visualiser en temps réel l'état de la barrière et les passages de véhicules, afin de surveiller le parking à distance.</li>
+<li><strong>En tant qu'administrateur</strong>, je veux pouvoir inscrire de nouveaux véhicules et gérer leurs abonnements (paiements, liste noire, liste blanche).</li>
+<li><strong>En tant qu'usager</strong>, je veux que la barrière s'ouvre automatiquement sans que j'aie à présenter de badge ou de ticket, à condition que je sois enregistré et à jour de mes paiements.</li>
+<li><strong>En tant qu'auditeur</strong>, je veux pouvoir consulter l'historique complet des accès (autorisés et refusés) avec des preuves photographiques, pour résoudre d'éventuels litiges.</li>
+</ul>
+<h3>3.2 Acteurs du Système</h3>
+<ul>
+<li><strong>L'Usager (Automobiliste) :</strong> N'interagit pas directement avec une interface numérique, mais interagit physiquement avec les capteurs et la barrière.</li>
+<li><strong>L'Administrateur :</strong> Gère le système via un Dashboard web sécurisé.</li>
+<li><strong>Le Système IoT :</strong> Agit de manière autonome pour orchestrer la détection et la capture.</li>
+</ul>
+<hr />
+<h2>4. Exigences Fonctionnelles</h2>
+<table>
+<thead>
+<tr>
+<th>Identifiant</th>
+<th>Fonctionnalité</th>
+<th>Priorité</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>EF-01</strong></td>
+<td>Détection de présence</td>
+<td>Indispensable</td>
+<td>Le système doit détecter la présence d'un véhicule à une distance paramétrable (ex: &lt; 30 cm) à l'aide d'un capteur ultrasonique.</td>
+</tr>
+<tr>
+<td><strong>EF-02</strong></td>
+<td>Capture photographique</td>
+<td>Indispensable</td>
+<td>Le système doit déclencher la prise d'une photographie HD via une caméra IP / Smartphone connecté.</td>
+</tr>
+<tr>
+<td><strong>EF-03</strong></td>
+<td>Reconnaissance LAPI (OCR)</td>
+<td>Indispensable</td>
+<td>Le système doit extraire le texte de la plaque d'immatriculation algérienne à partir de l'image capturée.</td>
+</tr>
+<tr>
+<td><strong>EF-04</strong></td>
+<td>Vérification des droits</td>
+<td>Indispensable</td>
+<td>Le système doit interroger la base de données locale pour vérifier le statut du véhicule (Inscrit, Payé, Blacklisté).</td>
+</tr>
+<tr>
+<td><strong>EF-05</strong></td>
+<td>Contrôle de la barrière</td>
+<td>Indispensable</td>
+<td>Le système doit piloter l'ouverture (90°) et la fermeture (0°) automatique d'un servo-moteur en fonction du résultat de vérification.</td>
+</tr>
+<tr>
+<td><strong>EF-06</strong></td>
+<td>Dashboard d'administration</td>
+<td>Indispensable</td>
+<td>Une interface web doit afficher l'état du système en temps réel, le flux vidéo/images, et les derniers accès.</td>
+</tr>
+<tr>
+<td><strong>EF-07</strong></td>
+<td>Gestion des véhicules (CRUD)</td>
+<td>Indispensable</td>
+<td>Interface permettant d'ajouter, modifier, supprimer des véhicules et mettre à jour leur statut.</td>
+</tr>
+<tr>
+<td><strong>EF-08</strong></td>
+<td>Historisation (Logs)</td>
+<td>Importante</td>
+<td>Tout accès ou tentative d'accès doit être enregistré en base de données avec l'horodatage, l'image associée et le motif de refus s'il y a lieu.</td>
+</tr>
+<tr>
+<td><strong>EF-09</strong></td>
+<td>Mode Fallback OCR</td>
+<td>Souhaitable</td>
+<td>En cas de panne de la connexion internet (impossibilité d'utiliser l'API Cloud), le système doit basculer sur un moteur OCR local (ex: Tesseract).</td>
+</tr>
+</tbody>
+</table>
+<h3>4.1 Module OCR et Découpage de Plaque</h3>
+<p>La particularité de la plaque algérienne nécessite un découpage et une vérification stricte. Voici le modèle de découpage mis en œuvre (ex. <code>56789 120 34</code>) :</p>
+<div class="mermaid">graph TD
+    Plaque[&quot;56789 120 34&quot;] --&gt; Mat[&quot;Matricule (56789)&quot;]
+    Plaque --&gt; TypeAnnee[&quot;Type(1) - Année(20)&quot;]
+    Plaque --&gt; Wilaya[&quot;Wilaya (34)&quot;]
+    style Plaque fill:#111,color:#fff,stroke:#333,stroke-width:4px
+    style Mat fill:#e2e8f0
+    style TypeAnnee fill:#e2e8f0
+    style Wilaya fill:#e2e8f0
+</div>
+<hr />
+<h2>5. Exigences Non-Fonctionnelles</h2>
+<ul>
+<li><strong>ENF-01 - Temps de réponse :</strong> Le processus complet (Détection → Capture → OCR → Décision → Ouverture) doit s'exécuter en moins de 15 secondes pour garantir la fluidité du trafic.</li>
+<li><strong>ENF-02 - Précision OCR :</strong> Le taux de reconnaissance correcte des plaques doit être supérieur à 90% dans des conditions d'éclairage normales, grâce au pré-traitement des images (CLAHE, Sharpening).</li>
+<li><strong>ENF-03 - Fiabilité (Anti-rebond) :</strong> Le système de détection doit intégrer un délai de "debounce" (ex: 5 secondes) pour éviter les captures multiples et intempestives d'un même véhicule.</li>
+<li><strong>ENF-04 - Déploiement :</strong> L'application serveur doit pouvoir être déployée sur n'importe quelle machine Windows/Linux capable d'exécuter Python 3.10+, sans dépendances complexes.</li>
+<li><strong>ENF-05 - Interface Utilisateur :</strong> Le Dashboard doit proposer une ergonomie premium (Design moderne, Glassmorphism, animations fluides) adaptée aux écrans desktop.</li>
+</ul>
+<hr />
+<h2>6. Architecture Technique &amp; Matérielle</h2>
+<p>Le système s'articule autour d'une architecture distribuée, communiquant via des protocoles asynchrones et temps réel.</p>
+<h3>6.1 Vue Globale du Système</h3>
+<div class="mermaid">graph TB
+    subgraph Hardware[&quot;Hardware (Arduino)&quot;]
+        US[HC-SR04\nCapteur Ultrasonique]
+        SV[Servo-Moteur\nBarrière]
+        UNO[Arduino Uno]
+        US --&gt;|distance cm| UNO
+        UNO --&gt;|PWM| SV
+    end
+
+    subgraph Phone[&quot;Smartphone&quot;]
+        CAM[Caméra Arrière\nHD 1080p]
+        BROWSER[Navigateur Web\n/camera]
+        CAM --&gt; BROWSER
+    end
+
+    subgraph Server[&quot;Serveur Python (Flask)&quot;]
+        APP[app.py\nFlask + SocketIO]
+        OCR[ocr_service.py\nOCR.space API + OpenCV]
+        GATE[gate_service.py\nLogique d'Accès]
+        DB[(SQLite\nlapi_db.sqlite)]
+        APP --&gt; OCR
+        APP --&gt; GATE
+        GATE --&gt; DB
+    end
+
+    subgraph Cloud[&quot;Cloud&quot;]
+        OCRAPI[OCR.space API\nEngine 1 &amp; 2]
+    end
+
+    UNO --&gt;|UART Serial\n9600 baud| APP
+    APP --&gt;|GATE:OPEN / GATE:CLOSE| UNO
+    BROWSER --&gt;|WebSocket\nSocketIO| APP
+    APP --&gt;|request_capture| BROWSER
+    BROWSER --&gt;|Base64 JPEG| APP
+    OCR --&gt;|HTTPS POST| OCRAPI
+    OCRAPI --&gt;|JSON result| OCR
+</div>
+<h3>6.2 Architecture Matérielle (IoT)</h3>
+<ul>
+<li><strong>Microcontrôleur :</strong> Arduino Uno R3.</li>
+<li><strong>Capteur de distance :</strong> HC-SR04 (Ultrasons).</li>
+<li><strong>Actionneur :</strong> Servo-moteur SG90 (simulation de la barrière).</li>
+<li><strong>Dispositif de capture :</strong> Smartphone (utilisant sa caméra principale via l'API Web <code>getUserMedia</code>).</li>
+<li><strong>Communication Hardware/Software :</strong> Protocole UART série sur USB (Baudrate: 9600).</li>
+</ul>
+<h3>6.3 Architecture Logicielle (Serveur &amp; Backend)</h3>
+<ul>
+<li><strong>Langage de programmation :</strong> Python 3.10+</li>
+<li><strong>Framework Web :</strong> Flask (Architecture par Blueprints pour la modularité).</li>
+<li><strong>Communication Temps Réel :</strong> Flask-SocketIO (WebSocket) pour faire le pont entre la caméra (Smartphone), le Serveur, et l'Interface d'Administration.</li>
+<li><strong>Traitement d'Image :</strong> OpenCV (cv2) pour l'amélioration de la qualité avant l'OCR.</li>
+<li><strong>Service LAPI / OCR :</strong> API Cloud OCR.space (avec gestion de rate-limiting et clés multiples) + Fallback local pytesseract.</li>
+</ul>
+<h3>6.4 Flux de Fonctionnement (Pipeline)</h3>
+<p>Le processus complet de bout en bout est représenté par le diagramme de séquence suivant :</p>
+<div class="mermaid">sequenceDiagram
+    participant HC as HC-SR04
+    participant ARD as Arduino
+    participant SRV as Flask Server
+    participant PH as Smartphone
+    participant OCR as OCR.space API
+    participant DB as SQLite DB
+    participant GATE as Servo Gate
+
+    HC-&gt;&gt;ARD: Distance mesurée: 24 cm
+    ARD-&gt;&gt;SRV: &quot;CAR_DETECTED&quot; (serial)
+    SRV-&gt;&gt;SRV: Vérif cooldown (5s)
+    SRV-&gt;&gt;PH: socket.emit('request_capture')
+    PH-&gt;&gt;PH: Capture frame HD
+    PH-&gt;&gt;SRV: socket.emit('phone_capture_result', {base64_image})
+    SRV-&gt;&gt;SRV: Décode base64 → JPEG sur disque
+    SRV-&gt;&gt;SRV: OpenCV preprocessing (CLAHE, sharpen)
+    SRV-&gt;&gt;OCR: POST base64 image + API key
+    OCR-&gt;&gt;SRV: JSON {ParsedText: &quot;53872 00 16&quot;}
+    SRV-&gt;&gt;SRV: _parse_plate() → &quot;53872 00 16&quot; (98%)
+    SRV-&gt;&gt;DB: INSERT INTO captures (...)
+    SRV-&gt;&gt;DB: SELECT registered_vehicles WHERE plaque=?
+    DB-&gt;&gt;SRV: vehicle (is_paid=1, status='normal')
+    SRV-&gt;&gt;SRV: Accès Autorisé
+    SRV-&gt;&gt;DB: INSERT INTO access_logs (...)
+    SRV-&gt;&gt;ARD: &quot;GATE:OPEN&quot; (serial)
+    ARD-&gt;&gt;GATE: PWM → 90°
+    ARD-&gt;&gt;SRV: &quot;GATE_OPENED&quot;
+    SRV-&gt;&gt;PH: socket.emit('gate_result', {access:true, plate:...})
+    Note over ARD,GATE: Auto-close après 10s
+    ARD-&gt;&gt;GATE: PWM → 0°
+    ARD-&gt;&gt;SRV: &quot;GATE_CLOSED&quot;
+</div>
+<hr />
+<h2>7. Modèle de Données</h2>
+<p>Le système utilise une base de données relationnelle locale (<strong>SQLite</strong>) pour garantir l'indépendance de la solution : <code>lapi_db.sqlite</code>.</p>
+<div class="mermaid">erDiagram
+    cameras {
+        INTEGER id_camera PK
+        TEXT adresse_ip
+        TEXT localisation
+        TEXT statut
+    }
+    captures {
+        INTEGER id_capture PK
+        TEXT plaque_immatriculation
+        TEXT date_heure_capture
+        TEXT chemin_image
+        REAL fiabilite_lecture
+        INTEGER id_camera FK
+    }
+    registered_vehicles {
+        INTEGER id PK
+        TEXT owner_name
+        TEXT plaque_immatriculation UK
+        INTEGER is_paid
+        TEXT status
+    }
+    access_logs {
+        INTEGER id PK
+        TEXT plaque_immatriculation
+        TEXT timestamp
+        INTEGER access_granted
+        TEXT reason
+        TEXT chemin_image
+        REAL distance_cm
+    }
+    cameras ||--o{ captures : &quot;enregistre&quot;
+    registered_vehicles ||--o{ access_logs : &quot;génère&quot;
+</div>
+<hr />
+<h2>8. Contraintes &amp; Risques</h2>
+<table>
+<thead>
+<tr>
+<th>Risque Identifié</th>
+<th>Impact</th>
+<th>Solution Apportée / Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Plaques sales ou détériorées</strong></td>
+<td>Baisse du taux de reconnaissance OCR.</td>
+<td>Amélioration logicielle des images (Contraste adaptatif) ; Interface manuelle pour que l'admin déclenche l'ouverture au cas où.</td>
+</tr>
+<tr>
+<td><strong>Limitation d'accès API (Rate limit)</strong></td>
+<td>Blocage complet de la reconnaissance (Erreur 429).</td>
+<td>Rotation implémentée sur plusieurs clés API gratuites. Algorithme de bascule automatique vers Tesseract en cas de limite atteinte.</td>
+</tr>
+<tr>
+<td><strong>Sécurité Web (HTTPS requis pour la caméra)</strong></td>
+<td>Le navigateur bloque la caméra en HTTP simple.</td>
+<td>Accès via IP locale directe, ou utilisation recommandée d'un tunnel sécurisé (Cloudflared).</td>
+</tr>
+<tr>
+<td><strong>Luminosité nocturne</strong></td>
+<td>Caméra de smartphone inefficace dans le noir total.</td>
+<td>Déploiement physique prévu : ajout d'un projecteur LED sur le site réel.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Ce document certifie la définition technique exhaustive du système ParkNet, développé dans le respect des contraintes académiques et industrielles.</em></p>
+    </div>
+    
+    
+<script>
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        document.getElementById("progress-bar").style.width = scrolled + "%";
+    });
+</script>
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    // Initialize mermaid with dark theme!
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        fontFamily: 'Outfit, sans-serif'
+    });
+</script>
+
+</body>
+</html>

@@ -46,7 +46,8 @@ def register_vehicle():
                 'plaque_immatriculation': plate,
                 'phone': phone,
                 'date_registered': timestamp,
-                'is_paid': 0
+                'is_paid': 0,
+                'status': 'normal'
             })
 
         return jsonify({'success': True, 'id': cursor.lastrowid})
@@ -132,6 +133,30 @@ def delete_vehicle(vehicle_id):
         if cursor.rowcount > 0:
             if _socketio:
                 _socketio.emit('vehicle_deleted', {'id': vehicle_id})
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Vehicle not found'}), 404
+    finally:
+        conn.close()
+
+@vehicle_bp.route('/api/vehicles/<int:vehicle_id>/status', methods=['POST'])
+def update_vehicle_status(vehicle_id):
+    data = request.get_json() or {}
+    new_status = data.get('status', 'normal') # 'normal', 'whitelist', 'blacklist'
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE registered_vehicles SET status = ? WHERE id = ?",
+            (new_status, vehicle_id)
+        )
+        conn.commit()
+        if cursor.rowcount > 0:
+            if _socketio:
+                _socketio.emit('vehicle_updated', {'id': vehicle_id, 'status': new_status})
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Vehicle not found'}), 404
     finally:

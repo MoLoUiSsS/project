@@ -75,6 +75,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.message) showToast(data.message, data.connected ? 'success' : 'info');
     });
 
+    const phoneDot = document.getElementById('phone-dot');
+    const phoneStatusText = document.getElementById('phone-status-text');
+
+    function setPhoneConnected(connected) {
+        if (connected) {
+            phoneDot.className = 'status-dot connected';
+            phoneStatusText.textContent = 'Connecté (Prêt)';
+        } else {
+            phoneDot.className = 'status-dot';
+            phoneStatusText.textContent = 'Déconnecté';
+        }
+    }
+
+    // Load initial phone status
+    fetch('/api/camera/status')
+        .then(r => r.json())
+        .then(data => {
+            setPhoneConnected(data.connected);
+        });
+
+    socket.on('camera_status', (data) => {
+        setPhoneConnected(data.connected);
+        showToast(data.connected ? 'Caméra téléphone connectée !' : 'Caméra téléphone déconnectée', data.connected ? 'success' : 'info');
+    });
+
     socket.on('distance_update', (data) => updateDistance(data.distance));
 
     socket.on('gate_triggered', () => {
@@ -252,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(r => r.json())
             .then(data => {
                 carIcon.classList.remove('approaching');
-                btn.innerHTML = '<i class="fa-solid fa-camera"></i> Test Manuel (Webcam)';
+                btn.innerHTML = '<i class="fa-solid fa-mobile-screen"></i> Demander Capture Tél.';
                 btn.disabled = false;
 
                 if (data.success) {
@@ -269,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(() => {
                 carIcon.classList.remove('approaching');
-                btn.innerHTML = '<i class="fa-solid fa-camera"></i> Test Manuel (Webcam)';
+                btn.innerHTML = '<i class="fa-solid fa-mobile-screen"></i> Demander Capture Tél.';
                 btn.disabled = false;
                 showToast('Erreur réseau', 'error');
             });

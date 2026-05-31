@@ -47,9 +47,16 @@ def setup_database():
             date_registered TEXT NOT NULL,
             is_paid INTEGER DEFAULT 0,
             payment_date TEXT,
-            payment_amount REAL DEFAULT 0
+            payment_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'normal'
         )
         """)
+
+        # Migration for existing databases
+        try:
+            cursor.execute("ALTER TABLE registered_vehicles ADD COLUMN status TEXT DEFAULT 'normal'")
+        except sqlite3.OperationalError:
+            pass # Column likely already exists
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS access_logs (
@@ -60,6 +67,16 @@ def setup_database():
             reason TEXT,
             chemin_image TEXT,
             distance_cm REAL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action_type TEXT NOT NULL,
+            description TEXT,
+            timestamp TEXT NOT NULL,
+            performed_by TEXT DEFAULT 'admin'
         )
         """)
 

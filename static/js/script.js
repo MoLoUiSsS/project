@@ -255,8 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (actionsDiv) actionsDiv.style.opacity = '0';
 
         const plateText = element.querySelector('.plate-extracted')?.innerText || 'capture';
-        const filename = `LAPI_${plateText.replace(/\s+/g, '_')}.pdf`;
-
+        const filename = `ParkNet_${plateText.replace(/\s+/g, '_')}.pdf`;
+ 
         const opt = {
             margin: 10,
             filename,
@@ -264,9 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-
+ 
         const title = document.createElement('h2');
-        title.innerHTML = '<i class="fa-solid fa-car-on"></i> LAPISys — Rapport de Capture';
+        title.innerHTML = '<i class="fa-solid fa-car-on"></i> ParkNet — Rapport de Capture';
         title.style.cssText = 'text-align:center; color:#3b82f6; margin-bottom:20px;';
         element.prepend(title);
 

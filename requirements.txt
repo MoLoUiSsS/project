@@ -2,8 +2,9 @@ Flask==3.0.0
 Flask-SocketIO==5.3.6
 python-socketio==5.10.0
 python-engineio==4.8.0
-PyMySQL==1.1.0
-eventlet==0.34.3
 Werkzeug==3.0.0
 pyserial==3.5
 opencv-python==4.9.0.80
+# Optional but recommended for better OCR accuracy
+# pytesseract  (requires Tesseract binary: https://github.com/UB-Mannheim/tesseract/wiki)
+# pillow

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Gate — Smart Parking System</title>
+    <title>Parking Gate — ParkNet</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +15,7 @@
         <aside class="sidebar glass-panel">
             <div class="logo">
                 <i class="fa-solid fa-car-on"></i>
-                <h2>LAPI<span>Sys</span></h2>
+                <h2>Park<span>Net</span></h2>
             </div>
             <nav class="nav-menu">
                 <a href="/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -50,6 +50,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Phone Camera Connection Panel -->
+            <div class="arduino-widget glass-panel" style="margin-top: 15px;">
+                <div class="widget-header">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <h3>Caméra Tél.</h3>
+                    <span class="status-dot" id="phone-dot"></span>
+                </div>
+                <p id="phone-status-text">Déconnecté</p>
+                <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;">
+                    <i class="fa-solid fa-wifi"></i> IoT Capture
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -62,7 +75,7 @@
                 </div>
                 <div class="topbar-actions">
                     <button id="btn-manual-capture" class="btn-primary ripple" style="padding:10px 20px;">
-                        <i class="fa-solid fa-camera"></i> Test Manuel (Webcam)
+                        <i class="fa-solid fa-mobile-screen"></i> Demander Capture Tél.
                     </button>
                     <a href="/register" class="btn-secondary" style="padding:10px 20px; text-decoration:none;">
                         <i class="fa-solid fa-user-plus"></i> Enregistrer un véhicule
@@ -107,9 +120,6 @@
                         </div>
                     </div>
 
-                    <!-- Webcam preview (hidden, used for capture) -->
-                    <video id="webcam-preview" autoplay playsinline style="display:none;"></video>
-                    <canvas id="capture-canvas" style="display:none;"></canvas>
                 </div>
 
                 <!-- Sensor Stats -->

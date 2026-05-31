@@ -4,7 +4,7 @@ import random
 import datetime
 from flask import Blueprint, request, jsonify
 from database import get_db_connection
-from services import ocr_service
+from services import ocr_service, camera_service
 from config import UPLOAD_FOLDER
 
 _socketio = None
@@ -59,6 +59,11 @@ def handle_upload():
         _socketio.emit('new_capture', capture_data)
 
     return jsonify({'success': True, 'data': capture_data})
+
+
+@capture_bp.route('/api/camera/status')
+def get_camera_status():
+    return jsonify({'connected': camera_service.is_phone_connected()})
 
 
 @capture_bp.route('/api/captures')

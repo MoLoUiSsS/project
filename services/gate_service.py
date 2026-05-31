@@ -1,9 +1,20 @@
 import re
+import os
 import time
 import datetime
 from database import get_db_connection
 from services import arduino_service, ocr_service, camera_service
 from config import DETECTION_COOLDOWN
+
+
+def _make_relative_path(image_path):
+    """Return a path relative to the static folder, using forward slashes."""
+    try:
+        rel = os.path.relpath(image_path, 'static').replace(os.sep, '/')
+        return rel
+    except ValueError:
+        # Different drives on Windows — fall back to string replace
+        return image_path.replace('static/', '').replace('static\\', '').replace('\\', '/')
 
 _socketio = None
 
@@ -30,8 +41,16 @@ def check_plate_access(plate):
 
         if not vehicle:
             return False, "Véhicule non enregistré"
+            
+        if vehicle['status'] == 'blacklist':
+            return False, "Accès refusé (Liste noire)"
+            
+        if vehicle['status'] == 'whitelist':
+            return True, f"Accès VIP autorisé — {vehicle['owner_name']}"
+            
         if not vehicle['is_paid']:
             return False, "Frais de parking non payés"
+            
         return True, f"Accès autorisé — {vehicle['owner_name']}"
     finally:
         conn.close()
@@ -44,14 +63,14 @@ def handle_car_detection():
             if _socketio:
                 _socketio.emit('gate_result', {
                     'access': False, 'plate': 'N/A',
-                    'reason': 'Webcam capture failed', 'image': ''
+                    'reason': 'Phone capture failed or timed out', 'image': ''
                 })
             arduino_service.detection_cooldown = False
             return
 
         plate, reliability = ocr_service.process_plate(image_path)
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        relative_path = image_path.replace('static/', '')
+        relative_path = _make_relative_path(image_path)
 
         conn = get_db_connection()
         if conn:
@@ -112,3 +131,69 @@ def handle_car_detection():
     except Exception as e:
         print(f"Error in car detection handler: {e}")
         arduino_service.detection_cooldown = False
+
+
+def handle_manual_phone_capture(image_path):
+    try:
+        if not image_path:
+            return
+
+        plate, reliability = ocr_service.process_plate(image_path)
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        relative_path = _make_relative_path(image_path)
+
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT INTO captures (plaque_immatriculation, date_heure_capture, "
+                    "chemin_image, fiabilite_lecture, id_camera) VALUES (?, ?, ?, ?, ?)",
+                    (plate, timestamp, relative_path, reliability, 1)
+                )
+                conn.commit()
+            finally:
+                conn.close()
+
+        if _socketio:
+            _socketio.emit('new_capture', {
+                'plaque_immatriculation': plate,
+                'fiabilite_lecture': reliability,
+                'date_heure_capture': timestamp,
+                'chemin_image': relative_path
+            })
+
+        access_granted, reason = check_plate_access(plate)
+
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT INTO access_logs (plaque_immatriculation, timestamp, "
+                    "access_granted, reason, chemin_image, distance_cm) VALUES (?, ?, ?, ?, ?, ?)",
+                    (plate, timestamp, 1 if access_granted else 0, reason,
+                     relative_path, arduino_service.last_distance)
+                )
+                conn.commit()
+            finally:
+                conn.close()
+
+        if access_granted:
+            arduino_service.send_command("GATE:OPEN")
+        else:
+            arduino_service.send_command("GATE:CLOSE")
+
+        if _socketio:
+            _socketio.emit('gate_result', {
+                'access': access_granted,
+                'plate': plate,
+                'reliability': reliability,
+                'reason': reason,
+                'image': relative_path,
+                'timestamp': timestamp,
+                'distance': arduino_service.last_distance
+            })
+
+    except Exception as e:
+        print(f"Error in manual phone capture handler: {e}")

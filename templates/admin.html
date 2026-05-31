@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel — Smart Parking System</title>
+    <title>Admin Panel — ParkNet</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +15,7 @@
         <aside class="sidebar glass-panel">
             <div class="logo">
                 <i class="fa-solid fa-car-on"></i>
-                <h2>LAPI<span>Sys</span></h2>
+                <h2>Park<span>Net</span></h2>
             </div>
             <nav class="nav-menu">
                 <a href="/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -43,6 +43,34 @@
                         <span class="sidebar-stat-val red" id="sb-unpaid">0</span>
                         <span class="sidebar-stat-label">En attente</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="arduino-widget glass-panel" style="margin-top: 16px;">
+                <div class="widget-header">
+                    <i class="fa-solid fa-door-open" style="color:var(--primary);"></i>
+                    <h3>Contrôle Barrière</h3>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-primary" style="flex:1; padding:8px; font-size:13px;" onclick="controlGate('open')">Ouvrir</button>
+                    <button class="btn-secondary" style="flex:1; padding:8px; font-size:13px;" onclick="controlGate('close')">Fermer</button>
+                </div>
+            </div>
+
+            <!-- Phone Camera Live Preview -->
+            <div class="arduino-widget glass-panel" style="margin-top: 16px;">
+                <div class="widget-header">
+                    <i class="fa-solid fa-video" style="color:#22c55e;"></i>
+                    <h3>Caméra Live</h3>
+                    <span class="status-dot" id="admin-phone-dot"></span>
+                </div>
+                <p id="admin-phone-status" style="font-size:12px; opacity:0.7;">Tél. déconnecté</p>
+                <div id="admin-camera-preview" style="width:100%; aspect-ratio:4/3; background:rgba(0,0,0,0.5); border-radius:10px; margin-top:10px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                    <div id="admin-cam-placeholder" style="text-align:center; color:rgba(255,255,255,0.3); font-size:12px;">
+                        <i class="fa-solid fa-camera" style="font-size:28px; display:block; margin-bottom:6px;"></i>
+                        Hors ligne
+                    </div>
+                    <canvas id="admin-cam-canvas" style="display:none; width:100%; height:100%; object-fit:cover;"></canvas>
                 </div>
             </div>
         </aside>
@@ -101,10 +129,13 @@
                 <!-- Tabs -->
                 <div class="admin-tabs glass-panel">
                     <button class="tab-btn active" id="tab-vehicles" onclick="switchTab('vehicles')">
-                        <i class="fa-solid fa-car"></i> Véhicules Enregistrés
+                        <i class="fa-solid fa-car"></i> Véhicules
                     </button>
                     <button class="tab-btn" id="tab-logs" onclick="switchTab('logs')">
-                        <i class="fa-solid fa-list-check"></i> Journal des Accès
+                        <i class="fa-solid fa-list-check"></i> Journal
+                    </button>
+                    <button class="tab-btn" id="tab-analytics" onclick="switchTab('analytics')">
+                        <i class="fa-solid fa-chart-bar"></i> Analytics
                     </button>
                 </div>
 
@@ -112,9 +143,14 @@
                 <div class="admin-table-card glass-panel" id="panel-vehicles">
                     <div class="table-header">
                         <h3><i class="fa-solid fa-car"></i> Véhicules Enregistrés</h3>
-                        <button class="btn-secondary" onclick="loadVehicles()">
-                            <i class="fa-solid fa-rotate"></i> Actualiser
-                        </button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-secondary" onclick="exportCSV('vehicles')">
+                                <i class="fa-solid fa-file-csv"></i> CSV
+                            </button>
+                            <button class="btn-secondary" onclick="loadVehicles()">
+                                <i class="fa-solid fa-rotate"></i> Actualiser
+                            </button>
+                        </div>
                     </div>
                     <div class="table-wrapper">
                         <table class="admin-table" id="vehicles-table">
@@ -124,9 +160,8 @@
                                     <th>Propriétaire</th>
                                     <th>Matricule</th>
                                     <th>Téléphone</th>
-                                    <th>Date d'inscription</th>
-                                    <th>Statut</th>
-                                    <th>Date de paiement</th>
+                                    <th>Statut (Liste)</th>
+                                    <th>Paiement</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -141,9 +176,14 @@
                 <div class="admin-table-card glass-panel" id="panel-logs" style="display:none;">
                     <div class="table-header">
                         <h3><i class="fa-solid fa-list-check"></i> Journal des Accès</h3>
-                        <button class="btn-secondary" onclick="loadLogs()">
-                            <i class="fa-solid fa-rotate"></i> Actualiser
-                        </button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-secondary" onclick="exportCSV('logs')">
+                                <i class="fa-solid fa-file-csv"></i> Exporter CSV
+                            </button>
+                            <button class="btn-secondary" onclick="loadLogs()">
+                                <i class="fa-solid fa-rotate"></i> Actualiser
+                            </button>
+                        </div>
                     </div>
                     <div class="table-wrapper">
                         <table class="admin-table" id="logs-table">
@@ -164,6 +204,19 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Analytics Panel -->
+                <div class="admin-table-card glass-panel" id="panel-analytics" style="display:none;">
+                    <div class="table-header">
+                        <h3><i class="fa-solid fa-chart-bar"></i> Statistiques d'Occupation (Heatmap)</h3>
+                        <button class="btn-secondary" onclick="loadAnalytics()">
+                            <i class="fa-solid fa-rotate"></i> Actualiser
+                        </button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="occupancyChart" style="width:100%; height:300px;"></canvas>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -172,6 +225,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

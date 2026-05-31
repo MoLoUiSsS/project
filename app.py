@@ -34,12 +34,14 @@ from routes.capture_routes import capture_bp, init as init_captures
 from routes.vehicle_routes import vehicle_bp, init as init_vehicles
 from routes.parking_routes import parking_bp, init as init_parking
 from routes.arduino_routes import arduino_bp
+from routes.analytics_routes import analytics_bp
 
 app.register_blueprint(pages_bp)
 app.register_blueprint(capture_bp)
 app.register_blueprint(vehicle_bp)
 app.register_blueprint(parking_bp)
 app.register_blueprint(arduino_bp)
+app.register_blueprint(analytics_bp)
 
 from services import arduino_service, gate_service, camera_service
 
@@ -52,7 +54,7 @@ arduino_service.init(socketio, gate_service.handle_car_detection)
 
 if __name__ == '__main__':
     print("\n" + "=" * 50)
-    print("  LAPI SMART PARKING SYSTEM")
+    print("  PARKNET — SMART IoT PARKING PLATFORM")
     print("=" * 50)
 
     setup_database()
@@ -71,9 +73,9 @@ if __name__ == '__main__':
     print(f"  Register:     http://localhost:5000/register")
     print(f"  Admin Panel:  http://localhost:5000/admin")
     
-    print("\n  📱 PHONE CAMERA LINKS (Try these on your phone):")
+    print("\n  [PHONE] CAMERA LINKS (open on your phone browser):")
     for ip in get_local_ips():
         print(f"  -> http://{ip}:5000/camera")
     print("=" * 50 + "\n")
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
